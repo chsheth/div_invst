@@ -43,7 +43,7 @@ CRITERIA THAT I HAVE PUT TOGETHER
                     
 from SBI					
     Fin Strength				
-        Credit Ratings from Research Companies			
+        Credit Ratings from Researching Companies			
             ValueLine	B+/2	
             S&P	BBB+	
             Morningstar	BBB+	
@@ -62,7 +62,7 @@ from SBI
         Inflation + Margin of Safety at least	5 yr growth rate to calculate Chowder Number		
                     
                     
-    Other factors to decide when to buy				
+Other factors to decide when to buy				
         Price to Sales	<1.5		
         Price to Earnings	Low P/E = low volatility; lower than average and less than reciprocal of bond interest rate		
         Price/Book Value	Lower than market -- close to 1		
@@ -72,7 +72,7 @@ from SBI
                     
         30 -- 40 stocks			
                     
-    Jefferson Research 				
+Jefferson Research 				
                     
     Balance Sheet 	 Strongest			
     Cash Flow Quality 	 Strongest			
@@ -81,7 +81,7 @@ from SBI
     Valuation 	 Low Risk			
                     
                     
-    "ACN = min(10%,Y) + min(30%,average(min(D,E,R),median(D,E,R)))
+Adjusted Chowder Number = min(10%,Y) + min(30%,average(min(D,E,R),median(D,E,R)))
 where:
 • Y = forward dividend yield
 • D = 5-year dividend growth rate
