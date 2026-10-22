@@ -9,7 +9,7 @@ criteria, and produces:
 Focus is on dividend Aristocrats, Champions and Contenders, but all US dividend payers are screened.
 
 ## Status
-Planning and the data coverage spike are complete; the application is not built yet. See `docs/sessions/session_resume.md` for the current state and next steps.
+Planning, the data coverage spike and the revision data spike are complete, and the default thresholds are settled; the application is not built yet. See `docs/sessions/session_resume.md` for the current state and next steps.
 
 ## Documents
 | File | Purpose |
@@ -18,6 +18,7 @@ Planning and the data coverage spike are complete; the application is not built 
 | `docs/criteria/ideas_v2.md` | Structured criteria, exit rules, decisions log (source of truth) |
 | `docs/research/data_sources.md` | Data source research: which sources work programmatically, element-to-source map |
 | `docs/research/coverage_spike_2026-10-19.md` | Coverage spike results on 21 tickers: source verdicts, EDGAR tag chains, Finnhub vs EDGAR checks |
+| `docs/research/revision_spike_2026-10-21.md` | Analyst revision data coverage for the StarMine-style proxy (criterion 13) |
 | `docs/plan/PLAN.md` | Build plan, phases |
 | `docs/sessions/session_resume.md` | Session summaries, open questions, next steps (start here when resuming) |
 

@@ -59,7 +59,7 @@ Summary: **every rating-agency source in v1 is a human-only source.** Credit rat
 | 1 | Altman Z, FCF positive 5 yrs, cash growth | Computed | Per proxy weights | yfinance statements | Statements tested for shape, not all rows | EDGAR | No |
 | 2 | Management quality | Stewardship rating | Per Morningstar | None | Blocked | none | **Yes** |
 | 3 | Jefferson quality grades | 5 grades | Strongest / Strong / Low risk | None | Blocked | proxy score | **Yes** |
-| 4 | Current yield vs market | dividendYield / SPY yield | 1.5 to 2x | yfinance (stock and SPY) | Stock tested; SPY not tested | any quote source | No |
+| 4 | Current yield vs market | dividendYield / SPY yield | 1.5 to 2.5x (flag above) | yfinance (stock and SPY) | Stock tested; SPY not tested | any quote source | No |
 | 5 | Chowder rule | yield + 5-yr dividend CAGR; yield / SPY yield | 12 / 15 / 8% by sector; >= 50% of SPY | yfinance dividend history + price | Tested (history present) | FMP dividends | No |
 | 5 | Inflation floor | CPI YoY + margin | Growth >= floor | FRED CPI | Tested | none needed | Margin of safety value |
 | 6 | ACN | min(10%,Y) + min(30%, avg/median of D,E,R) | Same sector tiers as 5 | yfinance (Y, dividends) + EDGAR (E, R, 5-yr) | EPS tested; revenue tag varies | yfinance statements | No |
@@ -74,7 +74,7 @@ Summary: **every rating-agency source in v1 is a human-only source.** Credit rat
 | 10 | Est. earnings growth | earningsGrowth; estimate table | Positive (threshold to define) | yfinance | Tested (present) | Finnhub estimates | **Threshold needed** |
 | 11 | Cash growth | Cash YoY change | > 0 | EDGAR or yfinance balance sheet | Tested | none | No |
 | 12 | Insider buying | Net insider purchases over trailing period | Increasing | yfinance insider transactions or EDGAR Form 4 | yfinance tested; EDGAR feed reachable, parse not tried | OpenInsider | **Threshold needed** |
-| 13 | Beat-market proxy | Target-price upside, recommendation mean, estimate revisions | 7+ equivalent (proxy scale to define) | yfinance | Tested (fields present) | Finnhub / FMP | StarMine score optional |
+| 13 | Beat-market proxy | Target-price upside, recommendation mean, estimate revisions | 7+ equivalent (proxy scale to define) | yfinance | Tested 2026-10-21 (21/21; see `revision_spike_2026-10-21.md`) | Finnhub recommendations (4 months) | StarMine score optional |
 | 14 | Diversification | Sector vs holdings | Not already owned; optional sector cap | yfinance sector + your holdings file | Tested (sector present) | none | Holdings file |
 | 15 | Accuracy calls | Jefferson / Ford agree | Yes | None | Blocked | none | **Yes** |
 | Exit | Yield compression | yield / 5-yr average yield | <= 50% | yfinance fiveYearAvgDividendYield | Tested (present) | computed from history | No |
@@ -100,5 +100,5 @@ Summary: **every rating-agency source in v1 is a human-only source.** Credit rat
 2. **CCC list source.** The DRIP Investing workbook is emailed. Options: (a) you subscribe and drop the file in a folder, (b) scrape Dividend Vision's public tables, (c) compute streaks from yfinance dividend history. I lean to (c) as the base with (b) as a cross-check. Status 2026-10-19: yfinance-computed streaks work for most tickers but show errors (XOM, PG, ED); still need the Dividend Vision cross-check. User confirmation of the route is pending.
 3. **API keys.** Answered 2026-10-19: keys supplied in `.env`, FMP and Finnhub and Alpha Vantage tested. Finnhub kept; FMP and Alpha Vantage dropped.
 4. **Reliability.** yfinance is unofficial and rate limited. Plan: cache everything locally, back off on 429s, and use EDGAR as the backbone for fundamentals history.
-5. **Thresholds you haven't defined.** Price/cash ("low"), estimated earnings growth, insider buying ("increasing"), the 1.5 to 2x yield upper bound, the proxy-score cutoff, the beat-market proxy scale. Each needs a number before it can drive an enter/exit decision.
+5. **Thresholds.** Resolved 2026-10-21: all defaults accepted; see the decisions log in `../criteria/ideas_v2.md`.
 6. **dividendinvestor.com** returned 403 to my fetch, so I could not assess it. If you use it manually, tell me what you pull from it.

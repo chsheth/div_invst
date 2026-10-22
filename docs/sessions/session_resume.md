@@ -4,13 +4,14 @@ _Last updated: 2026-10-21 (session 4)_
 
 ## How to resume
 1. Read `../criteria/ideas_v2.md` (criteria table A-E, exit rules, decisions log).
-2. Read `../research/coverage_spike_2026-10-19.md` (what data each source supplies, verdicts, caveats). `../research/data_sources.md` is the earlier 4-ticker draft; the spike doc wins where they differ.
+2. Read `../research/coverage_spike_2026-10-19.md` (what data each source supplies, verdicts, caveats) and `../research/revision_spike_2026-10-21.md` (criterion 13 proxy inputs). `../research/data_sources.md` is the earlier 4-ticker draft; the spike doc wins where they differ.
 3. Read `../plan/PLAN.md` (build phases). Then answer the open questions below and start phase 2.
 
 ## Session 4 summary (2026-10-21)
 - Wrote and ran `scripts/revision_spike.py` (21 tickers): yfinance revision data covers 21/21 so criterion 13 becomes an automated StarMine-style proxy; Finnhub recommendations are 4 months only and price targets are gated. Output in `data/revision_out/` (gitignored). Store daily yfinance snapshots from the first cache run.
 - Broker research (Fidelity, Schwab, Robinhood) has no API and logged-in scraping is brittle and against terms; decided to keep StarMine, Jefferson, Ford and Stewardship as manual override columns with occasional manual spot checks.
-- Accepted default thresholds for every undefined item (see `ideas_v2.md` decisions log, 2026-10-21).
+- Accepted default thresholds for every undefined item (see `ideas_v2.md` decisions log, 2026-10-21). Growth rates use point-to-point CAGRs.
+- Committed everything (`1f6911f`); docs refreshed again afterward and a revision spike write-up added under `docs/research/`.
 
 ## Session 3 summary (2026-10-19)
 - Lowered `requires-python` to >=3.12 and pinned `.python-version` to 3.13 (yfinance also works on 3.14).
@@ -46,9 +47,9 @@ Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs
 - Data refreshes on a cadence (`data_sources.md` section 4) and feeds an enter/exit decision from threshold results.
 
 ## Repo state
-- Code: `main.py` is a hello-world stub. `pyproject.toml` requires Python >=3.12, no dependencies yet. `scripts/` holds the two spike scripts (PEP 723, run with `uv run --python 3.13`).
+- Code: `main.py` is a hello-world stub. `pyproject.toml` requires Python >=3.12, no dependencies yet. `scripts/` holds the three spike scripts (PEP 723, run with `uv run --python 3.13`).
 - Docs: reorganized into `docs/` (criteria, research, plan, sessions); all updated this session.
-- Git: one commit from session 1. Everything since is uncommitted (docs reorganization, `scripts/`, `.gitignore`, Python version, `uv.lock`). `.env` and `data/` are ignored.
+- Git: all work is committed on `main` (not pushed). `.env` and `data/` are ignored.
 
 ## Next steps (ordered)
 1. User supplies the holdings layout and confirms the remaining open questions.

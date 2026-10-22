@@ -36,9 +36,13 @@ Build a tool that aggregates dividend stock data/history, screens it against the
 3. Fundamental break (flag "review now"): dividend cut/freeze, payout ratio over limit, falling earnings.
 Per holding: current price, target sell price, % upside, trigger(s) fired.
 
+**Thresholds (accepted 2026-10-21; full list in `docs/criteria/ideas_v2.md`)**
+- Growth rates are point-to-point 5-year CAGRs; zero or negative start makes the term unknown.
+- Yield 1.5-2.5x S&P with a yield-trap flag above; P/B <= 3; price/cash market cap/cash < 20 or cash >= 5% of cap; estimated growth >= 3% or inflation; insider buying = 2+ open-market buys in 6 months with net buying; proxy tier B cutoff; one-off EPS years flagged; ACN uses the Chowder tiers.
+
 **Paywalled criteria**
 - Crit 1 credit ratings: computed Financial Strength proxy score + optional manual rating column override.
-- Crit 13 StarMine: analyst-consensus/price-target/estimate-revision proxy (labeled as proxy); fall back to manual column.
+- Crit 13 StarMine: estimate-revision proxy (labeled as proxy; weights in `ideas_v2.md`); manual override column. Broker research (Fidelity, Schwab, Robinhood) has no API, so it is used only for occasional manual spot checks and calibration.
 - Crit 15 accuracy calls: manual yes/no check on finalists; drop if not workable.
 
 **Tech**
@@ -52,7 +56,7 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 | 1 | Credit ratings, low debt (debt/mkt cap <50% or 3:1 coverage), payout <=60% | Proxy score (below) from statements | Medium |
 | 2 | Management quality | Manual column | Low |
 | 3 | Jefferson quality grades | Manual column | Low |
-| 4 | Yield 1.5-2x S&P | yfinance yield, SPY yield | High |
+| 4 | Yield 1.5-2.5x S&P (flag above 2.5x) | yfinance yield, SPY yield | High |
 | 5 | Chowder rule | yield + dividend history CAGR | High |
 | 6 | ACN: min(10%,Y)+min(30%,avg(min(D,E,R),median(D,E,R))) | Finnhub annual series (EDGAR for banks) + forward yield | Medium |
 | 7 | Rising dividend 5+ yrs; earnings 7 of 10 | Streak computed from yfinance dividends (cross-check Dividend Vision); EPS from Finnhub annual series, EDGAR for banks | Medium |
@@ -61,7 +65,7 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 | 10 | PE vs hist PE, ROE, ROIC trend, est. growth | Finnhub annual series (back to 1985), yfinance estimates, EDGAR cross-check | High |
 | 11 | Cash growth YoY | statements | High |
 | 12 | Insider buying | yfinance or Finnhub insider transactions | High |
-| 13 | StarMine 7+ | Analyst consensus proxy (yfinance price targets, recommendations, revisions) | Low |
+| 13 | StarMine 7+ | Revision proxy 0-10, pass at 7+ (yfinance eps_trend, eps_revisions, upgrades_downgrades, price targets; Finnhub recommendations); manual override | Medium |
 | 14 | Diversification | Sector from yfinance vs holdings | High |
 | 15 | Accuracy calls | Manual flag | Low |
 
@@ -94,7 +98,7 @@ Banks/insurers scored separately; REITs use FFO payout + net debt/EBITDA. Missin
 Rule: decisions live in ideas_v2.md; session_resume.md points to them and lists next steps; README stays high level.
 
 ## Build phases
-1. **Done 2026-10-19.** Data spike (`scripts/coverage_spike.py`, 21 tickers, plus `scripts/finnhub_vs_edgar.py`): field coverage, source choices, Python version. Open follow-ups: Dividend Vision streak cross-check, REIT FFO source, small-cap coverage.
+1. **Done 2026-10-19.** Data spike (`scripts/coverage_spike.py`, 21 tickers, plus `scripts/finnhub_vs_edgar.py`): field coverage, source choices, Python version. Open follow-ups: Dividend Vision streak cross-check, REIT FFO source, small-cap coverage. Revision spike done 2026-10-21 (`scripts/revision_spike.py`).
 2. Data layer + SQLite cache under `src/div_invst/`: universe, prices, dividends, Finnhub annual series, EDGAR (CIK override, extended tag chains, split adjustment, bank path), analyst and insider data, FRED. Refresh cadence per `data_sources.md` section 4.
 3. Criteria engine: each criterion returns pass/fail/unknown + value; thresholds in TOML config. Include Financial Strength proxy.
 4. Holdings loader (xlsx/csv) + diversification cut.
