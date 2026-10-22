@@ -103,5 +103,6 @@ Rule: decisions live in ideas_v2.md; session_resume.md points to them and lists 
 
 ## Verification
 - Docs: four files exist; ideas_v2.md decisions log matches this list; session_resume.md has next steps.
+- Revision spike (2026-10-21): `scripts/revision_spike.py`, 21 tickers; yfinance revision data 21/21, so criterion 13 is an automated proxy (see `ideas_v2.md`). Store daily yfinance snapshots from the first cache run.
 - Spike: `uv run --python 3.13 scripts/coverage_spike.py` reproduces the coverage report from `data/spike_out/` (cached, no extra quota).
 - Build: run CLI on sample holdings; hand-check 3 known aristocrats (yield, Chowder, streak); unit tests per criterion; proxy-score ordering sanity check vs known ratings.

@@ -50,4 +50,5 @@ EDGAR_USER_AGENT=div-invst you@example.com
 ```
 uv run --python 3.13 scripts/coverage_spike.py                  # data coverage report -> data/spike_out/report.md
 uv run --python 3.13 scripts/finnhub_vs_edgar.py --tickers JNJ,KO   # Finnhub vs EDGAR spot-check
+uv run --python 3.13 scripts/revision_spike.py                  # analyst revision data coverage -> data/revision_out/report.md
 ```

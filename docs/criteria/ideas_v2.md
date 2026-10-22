@@ -27,18 +27,18 @@ Criteria come from the original notes (v1 criteria 1-8) and the SBI list; overla
 | 2 | Management quality | Morningstar Stewardship | Manual column only | Low |
 | 3 | Jefferson Research quality grades | Balance Sheet, Cash Flow Quality, Earnings Quality = strongest; Operating Efficiency = strong; Valuation = low risk | Manual column; proxy score components approximate it | Low |
 | **B** | **Income and dividend growth** | | | |
-| 4 | High current yield | 1.5 to 2 times the S&P yield | yfinance yield; SPY yield as the S&P proxy | High |
+| 4 | High current yield | 1.5 to 2.5 times the S&P yield; above 2.5x passes with a "yield trap?" flag | yfinance yield; SPY yield as the S&P proxy | High |
 | 5 | Chowder rule | Yield >= 50% of SPY yield; yield + 5y div CAGR >= 12% (most stocks, yield >= 3%), 15% (tech/growth, yield < 3%), 8% (utilities/telecom). Growth component must be at least inflation + margin of safety | yfinance dividends and price; CAGR computed | High |
-| 6 | Adjusted Chowder Number (ACN) | ACN >= the same sector tier as criterion 5 (12% / 15% / 8%). Formula: ACN = min(10%, Y) + min(30%, average(min(D,E,R), median(D,E,R))); Y = forward dividend yield, D/E/R = 5-yr dividend / earnings / revenue growth rate. Also the ranking tiebreaker | Forward yield from yfinance; 5-yr growth from Finnhub annual series (EDGAR for banks, split-adjusted) | Medium |
-| 7 | Rising dividends / earnings | Dividend up 5+ yrs; earnings up 7 of last 10 yrs | Dividend streak computed from yfinance history (cross-check Dividend Vision); EPS history from Finnhub annual series (EDGAR for banks). Finnhub EPS is GAAP, so one-off years show as spikes | Medium |
+| 6 | Adjusted Chowder Number (ACN) | ACN >= the same sector tier as criterion 5 (12% / 15% / 8%, Chowder tiers used as-is). Formula: ACN = min(10%, Y) + min(30%, average(min(D,E,R), median(D,E,R))); Y = forward dividend yield, D/E/R = 5-yr dividend / earnings / revenue growth rate. Also the ranking tiebreaker | Forward yield from yfinance; 5-yr growth from Finnhub annual series (EDGAR for banks, split-adjusted) | Medium |
+| 7 | Rising dividends / earnings | Dividend up 5+ yrs; earnings up 7 of last 10 yrs | Dividend streak computed from yfinance history (cross-check Dividend Vision); EPS history from Finnhub annual series (EDGAR for banks). Finnhub EPS is GAAP; an EPS year that swings more than 40% from both neighbors is flagged and counts as an up year only if the following year recovers | Medium |
 | **C** | **Valuation** | | | |
 | 8 | Discount to fair value | >= 15% below fair value | Own estimate: DDM and PE-vs-historical-PE, take the lower | Medium |
-| 9 | Valuation multiples | P/S < 1.5; low P/E (below average and below reciprocal of bond rate; low P/E is read as lower volatility); P/B lower than the market and close to 1; low price/cash | yfinance; Finnhub annual P/E, P/B, P/S history; 10-yr Treasury from FRED | High |
+| 9 | Valuation multiples | P/S < 1.5; P/E below its own 10-yr average and earnings yield (1/PE) above the 10-yr Treasury yield (low P/E is read as lower volatility); P/B <= 3 and below the market's P/B; price/cash: market cap / cash under 20 or cash >= 5% of market cap (skipped for banks and insurers) | yfinance; Finnhub annual P/E, P/B, P/S history; 10-yr Treasury from FRED | High |
 | **D** | **Fundamentals and momentum** | | | |
-| 10 | Better fundamentals | PE vs historical PE, ROE rising, ROIC rising, est. earnings growth | Finnhub annual series (ROE, ROIC, PE history), yfinance estimates; SEC EDGAR cross-check | Medium |
+| 10 | Better fundamentals | PE vs historical PE; ROE and ROIC rising (3-yr average above the prior 3-yr average, or latest >= 90% of the 10-yr high); next-year consensus EPS growth >= 3% or inflation (FRED CPI) if higher | Finnhub annual series (ROE, ROIC, PE history), yfinance estimates; SEC EDGAR cross-check | Medium |
 | 11 | Cash growth | Cash and equivalents growing YoY | Statements (yfinance 4 yrs; EDGAR longer) | High |
-| 12 | Insider buying | Insiders increasing purchases | yfinance or Finnhub insider transactions (EDGAR Form 4 not needed) | Medium |
-| 13 | Beat market next 6-12 months | Fidelity StarMine 7+ | Analyst consensus / price-target upside / estimate revisions proxy; manual column fallback | Low |
+| 12 | Insider buying | At least 2 open-market purchases by different insiders in the last 6 months, and net buying above net selling (option exercises, grants and tax-withholding sales excluded) | yfinance or Finnhub insider transactions (EDGAR Form 4 not needed) | Medium |
+| 13 | Beat market next 6-12 months | Revision proxy score 0-10, pass at 7+ (Fidelity StarMine 7+ is the real target) | Revision proxy from yfinance (eps_trend, eps_revisions, upgrades_downgrades, price targets) and Finnhub recommendations; 21/21 coverage in the 2026-10-21 spike (`scripts/revision_spike.py`). Weights: 40% 90-day EPS revision, 20% up/down revision balance, 20% rating-change momentum, 10% recommendation trend, 10% price-target upside; calibrate against 4-6 hand-looked-up Fidelity StarMine scores. Manual column fallback | Medium |
 | **E** | **Portfolio and manual checks** | | | |
 | 14 | Diversification cut | Drop candidates already owned; optional sector-share cap | Sector from yfinance vs holdings file | High |
 | 15 | Accuracy calls | Jefferson Research, Ford Equity Research agree | Manual yes/no on finalists; drop if not workable | Low |
@@ -47,6 +47,7 @@ Target portfolio size is 30-40 stocks. This is a constraint, not a scored criter
 
 ### Financial Strength proxy score (criterion 1)
 0-100, tiers A >= 80, B 65-79, C 50-64, D < 50. Shown as "proxy tier", never as a named rating.
+Pass cutoff: tier B or better (65+).
 Weights: debt/market cap < 50% (20), interest coverage >= 3x (20), debt/EBITDA sector-adjusted (15), payout <= 60% earnings/FCF based with REIT/utility/MLP exempt (20), FCF positive 5 yrs (10), Altman Z (10), cash growing YoY (5).
 Banks/insurers scored separately; REITs use FFO payout + net debt/EBITDA. Missing components skipped and re-weighted. Validate on ~20 known tickers vs public S&P ratings.
 
@@ -98,15 +99,14 @@ Manual references: Seeking Alpha, Dividend.com, Fidelity, Value Line, Morningsta
 - 2026-10-19: Coverage spike run on 21 tickers (results in `../research/coverage_spike_2026-10-19.md`). Finnhub free is the primary source for multi-year history (matches EDGAR for JNJ, KO, NEE, O); FMP (5-year cap, partial symbols) and Alpha Vantage (25 calls/day) dropped; EDGAR kept for cross-checks and for banks (no Finnhub annual EPS for JPM, USB).
 - 2026-10-19: EDGAR rules: CIK override table (XOM maps to a successor entity with no history), extended tag fallback chains (8+ years for all fields on the 21 tickers except CVX dividends per share), fiscal years ending Jan 1-7 count as the prior year, EDGAR per-share history must be split-adjusted (Finnhub already is).
 - 2026-10-19: Dividend streak computed from yfinance with ambiguous payment-count years bridged; treated as a screen only. Residual errors seen (XOM 53 vs about 43, PG 42 vs about 69, ED 44 vs about 51), so cross-check against Dividend Vision.
+- 2026-10-21: Revision spike on 21 tickers (`scripts/revision_spike.py`): yfinance eps_trend, eps_revisions, price targets, earnings history and dated upgrades/downgrades (back to about 2012) cover 21/21; Finnhub recommendations only 4 months on free tier, price targets gated. yfinance revision data is point-in-time, so daily snapshots should be stored from the first cache run.
+- 2026-10-21: Thresholds accepted: yield 1.5-2.5x S&P with a yield-trap flag above 2.5x; P/B <= 3 and below market; price/cash market cap/cash < 20 or cash >= 5% of cap; P/E below own 10-yr average and earnings yield above 10-yr Treasury; estimated growth >= 3% or inflation; ROE/ROIC rising = 3-yr average above prior 3-yr; insider buying = 2+ open-market buys by different insiders in 6 months with net buying; proxy pass cutoff tier B (65+); criterion 13 proxy 0-10, pass at 7+, weights 40/20/20/10/10; ACN uses Chowder tiers as-is; one-off EPS years flagged (40% swing vs both neighbors, counts as up year only if next year recovers); 15% exit margin kept; ADRs out of v1; 70% min coverage.
+- 2026-10-21: Growth rates (D, E, R and the 5-yr dividend CAGR) are point-to-point CAGRs over 5 years. Zero or negative start values make a growth rate unknown for that term (ACN then uses the remaining terms); a dividend cut and restore lowers D by design.
 - 2026-10-19: API keys (FMP, Finnhub, Alpha Vantage) and `EDGAR_USER_AGENT` live in `.env` (gitignored).
 
 ## Open questions
 Data-source questions raised on 2026-10-18 are listed in `../research/data_sources.md` section 5 (blocked sources, CCC list route, API keys, undefined thresholds).
-- Proxy score cutoff for criterion 1 pass (suggest tier B or better).
-- Whether ACN, which blends forward yield with a median of dividend/earnings/revenue growth, should use the Chowder tiers as-is or its own.
-- Whether criterion 4 means >= 1.5x S&P yield (current reading) or must also be <= 2x.
 - Which free sources truly cover each criterion: resolved by the 2026-10-19 spike, except a REIT FFO source (not found) and smaller-cap coverage (spike used 21 large caps).
-- Whether one-off GAAP EPS years (JNJ 2017 and 2023, KO 2017) should be flagged or normalized for the earnings 7-of-10 test.
 - Exact holdings file layout (user to supply).
-- Whether ADRs/foreign listings should be added after v1.
-- Whether the 15% exit margin is right.
+- Criterion 13 proxy weights need calibration against a few Fidelity StarMine scores looked up by hand.
+- Open spike items: REIT FFO source, small-cap coverage, Dividend Vision streak cross-check.

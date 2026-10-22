@@ -1,11 +1,16 @@
 # Session Resume
 
-_Last updated: 2026-10-19 (session 3)_
+_Last updated: 2026-10-21 (session 4)_
 
 ## How to resume
 1. Read `../criteria/ideas_v2.md` (criteria table A-E, exit rules, decisions log).
 2. Read `../research/coverage_spike_2026-10-19.md` (what data each source supplies, verdicts, caveats). `../research/data_sources.md` is the earlier 4-ticker draft; the spike doc wins where they differ.
 3. Read `../plan/PLAN.md` (build phases). Then answer the open questions below and start phase 2.
+
+## Session 4 summary (2026-10-21)
+- Wrote and ran `scripts/revision_spike.py` (21 tickers): yfinance revision data covers 21/21 so criterion 13 becomes an automated StarMine-style proxy; Finnhub recommendations are 4 months only and price targets are gated. Output in `data/revision_out/` (gitignored). Store daily yfinance snapshots from the first cache run.
+- Broker research (Fidelity, Schwab, Robinhood) has no API and logged-in scraping is brittle and against terms; decided to keep StarMine, Jefferson, Ford and Stewardship as manual override columns with occasional manual spot checks.
+- Accepted default thresholds for every undefined item (see `ideas_v2.md` decisions log, 2026-10-21).
 
 ## Session 3 summary (2026-10-19)
 - Lowered `requires-python` to >=3.12 and pinned `.python-version` to 3.13 (yfinance also works on 3.14).
@@ -24,14 +29,12 @@ _Last updated: 2026-10-19 (session 3)_
 - The test universe was 21 large caps; small-cap coverage is untested.
 
 ## Open questions for the user
-1. Confirm: proxies for credit quality and StarMine; manual columns for Stewardship, Jefferson, Ford. Criteria 2, 3, 15 stay "unknown" unless filled.
-2. CCC list route: recommended is computing streaks from yfinance history with Dividend Vision as the cross-check (alternatives: subscribe and drop the emailed DRIP workbook in a folder; scrape Dividend Vision only).
-3. Thresholds still undefined: price/cash ("low"), estimated earnings growth, insider buying ("increasing"), upper bound of the 1.5-2x yield range (currently >= 1.5x), proxy-score pass cutoff (suggest tier B), beat-market proxy scale, whether ACN uses the Chowder tiers as-is.
-4. Should one-off GAAP EPS years be flagged or normalized for the earnings test?
-5. What do you pull from dividendinvestor.com (403 to my fetch)?
-6. Holdings file layout (still to supply); is the 15% exit margin right; ADRs/foreign listings after v1?
+1. Holdings file layout (still to supply).
+2. CCC list route: recommended is computing streaks from yfinance history with Dividend Vision as the cross-check.
+3. What do you pull from dividendinvestor.com (403 to my fetch)?
+4. Confirm proxies for credit quality and StarMine; manual columns for Stewardship, Jefferson, Ford (criteria 2, 3, 15 stay unknown unless filled).
 
-Answered this session: keys, Python version, FMP and Alpha Vantage dropped, Finnhub kept.
+Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs out of v1.
 
 ## Key decisions (full list in `ideas_v2.md`)
 - Free data first; paid only if inadequate. Primary sources: yfinance, Finnhub, EDGAR, FRED.
@@ -48,10 +51,9 @@ Answered this session: keys, Python version, FMP and Alpha Vantage dropped, Finn
 - Git: one commit from session 1. Everything since is uncommitted (docs reorganization, `scripts/`, `.gitignore`, Python version, `uv.lock`). `.env` and `data/` are ignored.
 
 ## Next steps (ordered)
-1. User answers the open questions above (thresholds and holdings layout block the build).
-2. Spike follow-ups: Dividend Vision streak cross-check; find a REIT FFO source; test a few small caps.
-3. Merge any new findings into `ideas_v2.md` thresholds and the docs.
-4. Build the data layer + SQLite cache with scheduled refresh (`src/div_invst/`): Finnhub series, EDGAR (CIK overrides, tag chains, split adjustment, bank path), yfinance, FRED.
-5. Criteria engine + Financial Strength proxy + TOML config; enter/exit decision roll-up.
-6. Holdings loader + diversification cut; fair value, ranking, entry and exit reports.
-7. Tests and CLI.
+1. User supplies the holdings layout and confirms the remaining open questions.
+2. Spike follow-ups: Dividend Vision streak cross-check; find a REIT FFO source; test a few small caps; calibrate the criterion 13 proxy against a few Fidelity StarMine scores.
+3. Build the data layer + SQLite cache with scheduled refresh (`src/div_invst/`): Finnhub series, EDGAR (CIK overrides, tag chains, split adjustment, bank path), yfinance (including daily revision snapshots), FRED.
+4. Criteria engine + Financial Strength proxy + revision proxy + TOML config (thresholds from `ideas_v2.md`); enter/exit decision roll-up.
+5. Holdings loader + diversification cut; fair value, ranking, entry and exit reports.
+6. Tests and CLI.
