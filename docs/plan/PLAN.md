@@ -7,7 +7,8 @@ Build a tool that aggregates dividend stock data/history, screens it against the
 **Data / universe**
 - Free sources first; evaluate adequacy, then consider paid.
 - Universe: ALL dividend payers. Aristocrats/Champions/Contenders (CCC) flagged as primary tier; others included so matches outside CCC are not missed.
-- CCC lists: Dividend Radar (free weekly xlsx) or DRIP Investing Champions xlsx (free personal use). URLs/formats to verify in spike.
+- CCC lists (settled 2026-10-22): DRIP Investing "All CCC" export (emailed monthly, manual drop; 684 stocks) is the primary universe and tier; Dividend Vision public tables (`scripts/fetch_ccc.py`, 288 stocks) add streak years. When the two disagree the conservative (lower) streak is used. Loader: `src/div_invst/reference.py`; comparison: `scripts/compare_ccc.py`.
+- Monthly manual inputs in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv`, `ccc_list.csv`, Morningstar large and mid cap pick lists, Argus Top 30, optional `ratings.csv`. Details in `ideas_v2.md`.
 
 **Inputs**
 - Holdings file: Excel or CSV, user is assembling it. Ticker required; shares optional. No cost basis (no tax logic).
@@ -52,14 +53,14 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 ## Criteria data map (updated after the 2026-10-19 spike)
 | # | Criterion | Free source candidate | Confidence |
 |---|-----------|-----------------------|------------|
-| Universe | CCC lists + streak years | Dividend Radar / DRIP Investing xlsx | High |
+| Universe | CCC lists + streak years | DRIP "All CCC" export + Dividend Vision (conservative streak) | High |
 | 1 | Credit ratings, low debt (debt/mkt cap <50% or 3:1 coverage), payout <=60% | Proxy score (below) from statements | Medium |
 | 2 | Management quality | Manual column | Low |
 | 3 | Jefferson quality grades | Manual column | Low |
 | 4 | Yield 1.5-2.5x S&P (flag above 2.5x) | yfinance yield, SPY yield | High |
 | 5 | Chowder rule | yield + dividend history CAGR | High |
 | 6 | ACN: min(10%,Y)+min(30%,avg(min(D,E,R),median(D,E,R))) | Finnhub annual series (EDGAR for banks) + forward yield | Medium |
-| 7 | Rising dividend 5+ yrs; earnings 7 of 10 | Streak computed from yfinance dividends (cross-check Dividend Vision); EPS from Finnhub annual series, EDGAR for banks | Medium |
+| 7 | Rising dividend 5+ yrs; earnings 7 of 10 | CCC streak from DRIP band + Dividend Vision (conservative); non-CCC streak from yfinance as a screen; EPS from Finnhub annual series, EDGAR for banks | Medium |
 | 8 | Discount to fair value | Own DDM / PE-vs-hist-PE | Medium |
 | 9 | P/S, P/E, P/B, price/cash | statements + info; FRED for bond rate | High/Med |
 | 10 | PE vs hist PE, ROE, ROIC trend, est. growth | Finnhub annual series (back to 1985), yfinance estimates, EDGAR cross-check | High |
@@ -72,8 +73,10 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 Spike findings: `docs/research/data_sources.md` (2026-10-18, 4 tickers) and `docs/research/coverage_spike_2026-10-19.md` (21 tickers; supersedes where they differ).
 
 ## Resources / websites used (status: V = seen in search, U = unverified until spike)
-- Dividend Radar (FerdiS / Portfolio Insight) - weekly CCC xlsx, free (V, file URL U)
-- DRIP Investing Resource Center, dripinvesting.org "U.S. Dividend Champions" xlsx, free personal use (V, URL U)
+- Dividend Radar (FerdiS / Portfolio Insight) - weekly CCC xlsx, free (V, file URL U); not used
+- DRIP Investing "All CCC" export - emailed, manual monthly drop; USED as the primary CCC universe (2026-10-22)
+- Dividend Vision CCC tables - public HTML, no key; USED via `scripts/fetch_ccc.py` for streak years (terms of use not read)
+- Morningstar pick lists and Argus Top 30 PDFs - manual monthly drops, optional cross-checks (criteria 8, 1, 2, 3)
 - Yahoo Finance via `yfinance` Python lib - prices, dividends, statements, info, sector, analyst data (U: field coverage and rate limits)
 - Financial Modeling Prep (FMP) free tier - TESTED, dropped: 5-year cap, partial symbol coverage
 - SEC EDGAR (data.sec.gov) - XBRL financials, free, no key, requires User-Agent header. TESTED: needs CIK override (XOM), extended tag chains, split adjustment; Form 4 parsing not needed
@@ -98,7 +101,7 @@ Banks/insurers scored separately; REITs use FFO payout + net debt/EBITDA. Missin
 Rule: decisions live in ideas_v2.md; session_resume.md points to them and lists next steps; README stays high level.
 
 ## Build phases
-1. **Done 2026-10-19.** Data spike (`scripts/coverage_spike.py`, 21 tickers, plus `scripts/finnhub_vs_edgar.py`): field coverage, source choices, Python version. Open follow-ups: Dividend Vision streak cross-check, REIT FFO source, small-cap coverage. Revision spike done 2026-10-21 (`scripts/revision_spike.py`).
+1. **Done 2026-10-19.** Data spike (`scripts/coverage_spike.py`, 21 tickers, plus `scripts/finnhub_vs_edgar.py`): field coverage, source choices, Python version. Open follow-ups: REIT FFO source, small-cap coverage (the Dividend Vision streak cross-check was done 2026-10-22). Revision spike done 2026-10-21 (`scripts/revision_spike.py`).
 2. Data layer + SQLite cache under `src/div_invst/`: universe, prices, dividends, Finnhub annual series, EDGAR (CIK override, extended tag chains, split adjustment, bank path), analyst and insider data, FRED. Refresh cadence per `data_sources.md` section 4.
 3. Criteria engine: each criterion returns pass/fail/unknown + value; thresholds in TOML config. Include Financial Strength proxy.
 4. Holdings loader (xlsx/csv) + diversification cut.

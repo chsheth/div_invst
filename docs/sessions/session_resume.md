@@ -1,11 +1,18 @@
 # Session Resume
 
-_Last updated: 2026-10-21 (session 4)_
+_Last updated: 2026-10-22 (session 5)_
 
 ## How to resume
 1. Read `../criteria/ideas_v2.md` (criteria table A-E, exit rules, decisions log).
 2. Read `../research/coverage_spike_2026-10-19.md` (what data each source supplies, verdicts, caveats) and `../research/revision_spike_2026-10-21.md` (criterion 13 proxy inputs). `../research/data_sources.md` is the earlier 4-ticker draft; the spike doc wins where they differ.
 3. Read `../plan/PLAN.md` (build phases). Then answer the open questions below and start phase 2.
+
+## Session 5 summary (2026-10-22)
+- User added reference material under `docs/reference/` (gitignored): `2026-10/` holds the monthly drops (Morningstar large and mid cap pick lists, Argus Top 30, `drip_ccc.csv`, `ccc_list.csv`) and `samples/` holds the one-off Argus, CFRA, Morningstar and Fidelity files. Only the pick lists, Argus Top 30 and the DRIP export are tabular enough to use; the rest is commentary.
+- Wrote `scripts/fetch_ccc.py` (Dividend Vision, 288 tickers), `src/div_invst/reference.py` (loaders, `load_universe`, `conservative_streak`) and `scripts/compare_ccc.py` (report at `data/ccc_compare.md`).
+- Findings: DRIP covers 684 stocks vs 288; DRIP 5-yr dividend growth matches our computed CAGR (median 0.3 points); DRIP's Chowder Number is just yield + 5-yr growth; DRIP and Dividend Vision disagree on 16 of 268 shared tickers' tiers (ABBV, ABT, MCD, GS, MS and others), handled by the conservative-streak rule (lower claim). yfinance streaks are wrong for PG, MCD, XOM, MO, ED.
+- Reading PDFs: PyMuPDF sorted-text works for the Morningstar and Argus tables (run with `uv run --with pymupdf`; not yet a project dependency). Poppler is not installed.
+- Committed together with the doc updates.
 
 ## Session 4 summary (2026-10-21)
 - Wrote and ran `scripts/revision_spike.py` (21 tickers): yfinance revision data covers 21/21 so criterion 13 becomes an automated StarMine-style proxy; Finnhub recommendations are 4 months only and price targets are gated. Output in `data/revision_out/` (gitignored). Store daily yfinance snapshots from the first cache run.
@@ -31,7 +38,7 @@ _Last updated: 2026-10-21 (session 4)_
 
 ## Open questions for the user
 1. Holdings file layout (still to supply).
-2. CCC list route: recommended is computing streaks from yfinance history with Dividend Vision as the cross-check.
+2. CCC list route: resolved 2026-10-22 (DRIP export + Dividend Vision, conservative streak). Still open: review the 16 DRIP/Dividend Vision tier conflicts by hand; decide the 5-yr average yield source for exit rule 2 (DRIP vs yfinance); confirm Dividend Vision's terms of use allow a monthly fetch.
 3. What do you pull from dividendinvestor.com (403 to my fetch)?
 4. Confirm proxies for credit quality and StarMine; manual columns for Stewardship, Jefferson, Ford (criteria 2, 3, 15 stay unknown unless filled).
 
@@ -47,13 +54,13 @@ Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs
 - Data refreshes on a cadence (`data_sources.md` section 4) and feeds an enter/exit decision from threshold results.
 
 ## Repo state
-- Code: `main.py` is a hello-world stub. `pyproject.toml` requires Python >=3.12, no dependencies yet. `scripts/` holds the three spike scripts (PEP 723, run with `uv run --python 3.13`).
+- Code: `main.py` is a hello-world stub; `src/div_invst/reference.py` loads the monthly reference files; `scripts/fetch_ccc.py` and `scripts/compare_ccc.py` support them. `pyproject.toml` requires Python >=3.12, no dependencies yet. `scripts/` holds the three spike scripts (PEP 723, run with `uv run --python 3.13`).
 - Docs: reorganized into `docs/` (criteria, research, plan, sessions); all updated this session.
-- Git: all work is committed on `main` (not pushed). `.env` and `data/` are ignored.
+- Git: all work is committed on `main` (not pushed). `.env`, `data/` and `docs/reference/` are ignored.
 
 ## Next steps (ordered)
-1. User supplies the holdings layout and confirms the remaining open questions.
-2. Spike follow-ups: Dividend Vision streak cross-check; find a REIT FFO source; test a few small caps; calibrate the criterion 13 proxy against a few Fidelity StarMine scores.
+1. User supplies the holdings layout and confirms the remaining open questions. Drop each month's files in `docs/reference/<YYYY-MM>/`.
+2. Spike follow-ups: review the 16 CCC tier conflicts; find a REIT FFO source; test a few small caps; calibrate the criterion 13 proxy against a few Fidelity StarMine scores.
 3. Build the data layer + SQLite cache with scheduled refresh (`src/div_invst/`): Finnhub series, EDGAR (CIK overrides, tag chains, split adjustment, bank path), yfinance (including daily revision snapshots), FRED.
 4. Criteria engine + Financial Strength proxy + revision proxy + TOML config (thresholds from `ideas_v2.md`); enter/exit decision roll-up.
 5. Holdings loader + diversification cut; fair value, ranking, entry and exit reports.

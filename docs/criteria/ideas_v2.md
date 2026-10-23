@@ -13,6 +13,7 @@ matches outside the CCC lists are not missed.
 
 ## Universe
 - US-listed dividend-paying stocks. CCC flagged as primary tier. ADRs/foreign out of scope for v1.
+- CCC universe and tier come from the monthly DRIP "All CCC" export (684 stocks, 2026-10), merged with Dividend Vision (288) for streak years. Both files are manual or semi-manual monthly inputs in `docs/reference/<YYYY-MM>/` (see Monthly reference inputs below).
 - Start with the CCC lists, then widen to all US dividend payers.
 
 ## Criteria
@@ -30,7 +31,7 @@ Criteria come from the original notes (v1 criteria 1-8) and the SBI list; overla
 | 4 | High current yield | 1.5 to 2.5 times the S&P yield; above 2.5x passes with a "yield trap?" flag | yfinance yield; SPY yield as the S&P proxy | High |
 | 5 | Chowder rule | Yield >= 50% of SPY yield; yield + 5y div CAGR >= 12% (most stocks, yield >= 3%), 15% (tech/growth, yield < 3%), 8% (utilities/telecom). Growth component must be at least inflation + margin of safety | yfinance dividends and price; CAGR computed | High |
 | 6 | Adjusted Chowder Number (ACN) | ACN >= the same sector tier as criterion 5 (12% / 15% / 8%, Chowder tiers used as-is). Formula: ACN = min(10%, Y) + min(30%, average(min(D,E,R), median(D,E,R))); Y = forward dividend yield, D/E/R = 5-yr dividend / earnings / revenue growth rate. Also the ranking tiebreaker | Forward yield from yfinance; 5-yr growth from Finnhub annual series (EDGAR for banks, split-adjusted) | Medium |
-| 7 | Rising dividends / earnings | Dividend up 5+ yrs; earnings up 7 of last 10 yrs | Dividend streak computed from yfinance history (cross-check Dividend Vision); EPS history from Finnhub annual series (EDGAR for banks). Finnhub EPS is GAAP; an EPS year that swings more than 40% from both neighbors is flagged and counts as an up year only if the following year recovers | Medium |
+| 7 | Rising dividends / earnings | Dividend up 5+ yrs; earnings up 7 of last 10 yrs | CCC dividend streak from the monthly lists using the conservative rule (decisions log 2026-10-22); non-CCC streak computed from yfinance history as a screen only; EPS history from Finnhub annual series (EDGAR for banks). Finnhub EPS is GAAP; an EPS year that swings more than 40% from both neighbors is flagged and counts as an up year only if the following year recovers | Medium |
 | **C** | **Valuation** | | | |
 | 8 | Discount to fair value | >= 15% below fair value | Own estimate: DDM and PE-vs-historical-PE, take the lower | Medium |
 | 9 | Valuation multiples | P/S < 1.5; P/E below its own 10-yr average and earnings yield (1/PE) above the 10-yr Treasury yield (low P/E is read as lower volatility); P/B <= 3 and below the market's P/B; price/cash: market cap / cash under 20 or cash >= 5% of market cap (skipped for banks and insurers) | yfinance; Finnhub annual P/E, P/B, P/S history; 10-yr Treasury from FRED | High |
@@ -50,6 +51,15 @@ Target portfolio size is 30-40 stocks. This is a constraint, not a scored criter
 Pass cutoff: tier B or better (65+).
 Weights: debt/market cap < 50% (20), interest coverage >= 3x (20), debt/EBITDA sector-adjusted (15), payout <= 60% earnings/FCF based with REIT/utility/MLP exempt (20), FCF positive 5 yrs (10), Altman Z (10), cash growing YoY (5).
 Banks/insurers scored separately; REITs use FFO payout + net debt/EBITDA. Missing components skipped and re-weighted. Validate on ~20 known tickers vs public S&P ratings.
+
+### Monthly reference inputs
+Dropped by hand into `docs/reference/<YYYY-MM>/` (gitignored; loader `src/div_invst/reference.py` reads the newest folder, falling back to the latest earlier month and marking data stale):
+- `drip_ccc.csv`: DRIP Investing "All CCC" export (emailed). Primary CCC universe and tier (Stock Type = streak band: Challenger 5-9, Contender 10-24, Champion 25-49, King 50+). Also carries 5Y Avg Yield (candidate source for exit rule 2), DGR 1/3/5/10Y, Chowder Number (equals yield + DGR 5Y, so not an independent check), Peter Lynch fair value, ROE, Debt/Capital, P/E, P/BV, PEG.
+- `ccc_list.csv`: Dividend Vision lists via `scripts/fetch_ccc.py` (kings, aristocrats, champions, contenders, challengers). Gives streak years. Yield, price and P/E in it are stale snapshots and are not used.
+- `morningstar_large_cap.pdf`, `morningstar_mid_cap.pdf`: Morningstar pick lists (fair value, rating, moat, uncertainty). Optional cross-check for criterion 8 and manual columns for criteria 2 and 3. Names are picks only, so absence says nothing.
+- `argus_top30.pdf`: Argus Top 30 (Financial Strength grade, yield, PE) and stock screen. Optional cross-check for criterion 1.
+- `ratings.csv`: optional per-stock ratings (`as_of, ticker, source, rating, target_price`).
+PDFs are read with PyMuPDF sorted-text extraction (its table finder splits decimals). Loaders for the Morningstar and Argus PDFs are not written yet.
 
 ## Exit rules
 The exit report shows which trigger fired for each holding, plus current price, target sell price, % upside.
@@ -102,6 +112,8 @@ Manual references: Seeking Alpha, Dividend.com, Fidelity, Value Line, Morningsta
 - 2026-10-21: Revision spike on 21 tickers (`scripts/revision_spike.py`): yfinance eps_trend, eps_revisions, price targets, earnings history and dated upgrades/downgrades (back to about 2012) cover 21/21; Finnhub recommendations only 4 months on free tier, price targets gated. yfinance revision data is point-in-time, so daily snapshots should be stored from the first cache run.
 - 2026-10-21: Thresholds accepted: yield 1.5-2.5x S&P with a yield-trap flag above 2.5x; P/B <= 3 and below market; price/cash market cap/cash < 20 or cash >= 5% of cap; P/E below own 10-yr average and earnings yield above 10-yr Treasury; estimated growth >= 3% or inflation; ROE/ROIC rising = 3-yr average above prior 3-yr; insider buying = 2+ open-market buys by different insiders in 6 months with net buying; proxy pass cutoff tier B (65+); criterion 13 proxy 0-10, pass at 7+, weights 40/20/20/10/10; ACN uses Chowder tiers as-is; one-off EPS years flagged (40% swing vs both neighbors, counts as up year only if next year recovers); 15% exit margin kept; ADRs out of v1; 70% min coverage.
 - 2026-10-21: Growth rates (D, E, R and the 5-yr dividend CAGR) are point-to-point CAGRs over 5 years. Zero or negative start values make a growth rate unknown for that term (ACN then uses the remaining terms); a dividend cut and restore lowers D by design.
+- 2026-10-22: DRIP "All CCC" export added (684 stocks) and Dividend Vision fetch script written (288 stocks). DRIP is the primary universe; Dividend Vision adds streak years. Comparison (`scripts/compare_ccc.py`): DRIP 5-yr dividend growth matches our computed CAGR (median gap 0.3 points over 19 tickers), so we keep computing ours and use DRIP as a cross-check; DRIP 5Y avg yield runs 0.2 points above yfinance's (median) with larger gaps for some (MO 8.83% vs 7.42%).
+- 2026-10-22: Conservative streak rule. When the sources cannot be reconciled, use the lower claim: Dividend Vision streak inside the DRIP type band is verified and used; outside the band, the lower of the two (the band's top when Dividend Vision is higher, else the Dividend Vision streak); not on Dividend Vision, the bottom of the band; not on DRIP, the Dividend Vision streak unchecked. Result for 2026-10: 252 verified, 16 conflicts (ABBV, ABT, MCD, GS, MS and others, to review by hand), 416 band only, 20 Dividend Vision only. yfinance-computed streaks are wrong for PG, MCD, XOM, MO and ED, so they are not used for CCC names.
 - 2026-10-19: API keys (FMP, Finnhub, Alpha Vantage) and `EDGAR_USER_AGENT` live in `.env` (gitignored).
 
 ## Open questions
@@ -109,4 +121,5 @@ Data-source questions raised on 2026-10-18 are listed in `../research/data_sourc
 - Which free sources truly cover each criterion: resolved by the 2026-10-19 spike, except a REIT FFO source (not found) and smaller-cap coverage (spike used 21 large caps).
 - Exact holdings file layout (user to supply).
 - Criterion 13 proxy weights need calibration against a few Fidelity StarMine scores looked up by hand.
-- Open spike items: REIT FFO source, small-cap coverage, Dividend Vision streak cross-check.
+- Open spike items: REIT FFO source, small-cap coverage. The Dividend Vision streak cross-check is done (2026-10-22): 16 DRIP/Dividend Vision conflicts remain, settled conservatively and worth a manual look.
+- Exit rule 2 needs one 5-yr average yield source: DRIP `5Y Avg Yield` (monthly, stated) vs yfinance `fiveYearAvgDividendYield` (differs). Undecided.
