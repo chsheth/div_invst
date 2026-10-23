@@ -7,6 +7,13 @@ _Last updated: 2026-10-22 (session 5)_
 2. Read `../research/coverage_spike_2026-10-19.md` (what data each source supplies, verdicts, caveats) and `../research/revision_spike_2026-10-21.md` (criterion 13 proxy inputs). `../research/data_sources.md` is the earlier 4-ticker draft; the spike doc wins where they differ.
 3. Read `../plan/PLAN.md` (build phases). Then answer the open questions below and start phase 2.
 
+## To check next session (2026-10-23)
+1. Review the 16 DRIP vs Dividend Vision tier conflicts by hand (ABBV, ABT, ADC, AMCR, CAH, CSL, GRC, GS, HTO, MCD, MLM, MS, MSEX, MZTI, NC, PNR; list in `data/ccc_compare.md`, rerun `scripts/compare_ccc.py`). Until then the conservative (lower) streak is used.
+2. Pick the 5-yr average yield source for exit rule 2: DRIP `5Y Avg Yield` vs yfinance `fiveYearAvgDividendYield` (DRIP runs about 0.2 points higher; MO 8.83% vs 7.42%).
+3. Confirm Dividend Vision's terms of use allow one fetch a month.
+4. User adds one more data source to `docs/reference/2026-10/`; review it the same way (what it is, columns, overlap with existing sources, which criteria it feeds).
+5. After 1-4, review the plan (`../plan/PLAN.md`) and the build order.
+
 ## Session 5 summary (2026-10-22)
 - User added reference material under `docs/reference/` (gitignored): `2026-10/` holds the monthly drops (Morningstar large and mid cap pick lists, Argus Top 30, `drip_ccc.csv`, `ccc_list.csv`) and `samples/` holds the one-off Argus, CFRA, Morningstar and Fidelity files. Only the pick lists, Argus Top 30 and the DRIP export are tabular enough to use; the rest is commentary.
 - Wrote `scripts/fetch_ccc.py` (Dividend Vision, 288 tickers), `src/div_invst/reference.py` (loaders, `load_universe`, `conservative_streak`) and `scripts/compare_ccc.py` (report at `data/ccc_compare.md`).
