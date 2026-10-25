@@ -18,7 +18,7 @@ tier_low_yield = 0.15     # yield below 3% (tech and growth)
 tier_utility_telecom = 0.08
 low_yield_cutoff = 0.03
 acn_yield_cap = 0.10
-acn_growth_cap = 0.30
+acn_growth_cap = 0.15
 acn_min_terms = 2         # of D, E, R that must be available
 
 [valuation]               # criterion 9
@@ -28,7 +28,7 @@ min_cash_to_market_cap = 0.05
 min_subtests = 3          # evaluable sub-tests needed for a pass
 
 [quality]                 # criteria 2, 3, 15
-pass_score = 65           # criterion 3 composite score
+pass_score = 70           # criterion 3 composite score
 min_subscores = 3         # of 4
 governance_pass = ["Leader", "Average"]
 agreement_min_sources = 3

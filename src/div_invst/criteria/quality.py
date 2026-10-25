@@ -26,7 +26,7 @@ def subscores(rec: dict) -> dict:
     skip_ratios = financial or is_reit(rec) or rec.get("sector") == "Utilities"
 
     dc = s("debt_to_capital")
-    debt_score = None if dc is None else (0 if dc < 0 else 100 if dc <= 0.35 else 70 if dc <= 0.50 else 40 if dc <= 0.65 else 0)
+    debt_score = None if dc is None or financial else (0 if dc < 0 else 100 if dc <= 0.35 else 70 if dc <= 0.50 else 40 if dc <= 0.65 else 20 if dc <= 0.75 else 0)
     ic = s("interest_coverage")
     cr = s("current_ratio")
     balance = _mean([None if ic is None or financial else _ladder(ic, [(8, 100), (5, 80), (3, 60), (1.5, 30)], 0), debt_score,

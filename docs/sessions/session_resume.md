@@ -81,3 +81,4 @@ Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs
 
 ## Session 6 (continued)
 Criteria engine built (9 criteria, ranking, report, tests); code review fixes applied (negative P/B, Morningstar None, bank interest coverage). Open: calibration, StarMine double count, ranking tie rule.
+Calibration 2026-10-25: composite pass cutoff 65 -> 70, debt/capital skipped for financials. Still open: ACN is inflated for cyclical growers (energy, REITs with 30% growth).
