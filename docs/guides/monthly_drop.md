@@ -52,7 +52,13 @@ What to look at:
 - **A missing optional file** is fine; criteria that use it stay unknown for that month.
 - **The "raw .xls newer than the .xlsx" note:** rerun the merge in step b.
 
-## 4. Follow-up
+## 4. Build the combined dataset
+```
+uv run --python 3.13 scripts/build_dataset.py
+```
+Joins DRIP, the screener, Morningstar and Argus into one row per ticker and writes `data/dataset/<YYYY-MM>.csv` (columns prefixed `drip_`, `scr_`, `ms_`, `argus_`; percent fields are fractions). It prints the join summary: tickers per source, Morningstar and Argus names missing from the screener, CCC names missing from the screener (October: CABO, TGLS, XOM) and how complete the key fields are for CCC names. Look at the missing-CCC list each month.
+
+## 5. Follow-up
 - Update the folder's own `README.md` if a file's source or format changed.
 
 ## What each file feeds
@@ -74,5 +80,6 @@ Detail on each source's columns and verdicts: `docs/criteria/ideas_v2.md` ("Mont
 | Shared helpers (month folder lookup, cell cleaning, PDF text) | `src/div_invst/reference/common.py` |
 | Screener merge | `scripts/merge_screener.py` |
 | Folder check | `scripts/check_month.py` |
+| Screener loader (5 tabs joined, units converted) | `src/div_invst/reference/screener.py` |
+| Combined dataset (one record per ticker, sources side by side) | `src/div_invst/reference/dataset.py`, `scripts/build_dataset.py` |
 
-Not yet written: the loader for `screener_results.xlsx` (it can be read only through the merge and the check so far).

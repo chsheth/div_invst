@@ -106,7 +106,7 @@ Done: (1) data spikes (coverage 2026-10-19, revisions 2026-10-21); (1b) monthly 
 
 Build in vertical slices, so a ranked list exists early and heavier criteria are added to it:
 2. **Slice 1: screener-based entry list (no network).**
-   - `reference/screener.py`: load `screener_results.xlsx` (parse market cap text, `--` as unknown, units per `docs/research/fidelity_screener.md`), US-only filter (HQ country), join with the DRIP universe.
+   - **Done 2026-10-25:** `reference/screener.py` (loader) and `reference/dataset.py` + `scripts/build_dataset.py` (combined per-ticker dataset of DRIP, screener, Morningstar and Argus, with a `us_scope` flag).
    - Criteria engine skeleton: each criterion returns pass / fail / unknown + value; thresholds in `config.toml`.
    - First criteria from the screener alone: 4 yield (S&P yield from SPY later, fixed placeholder first), 5 Chowder, 6 ACN (E and R from the screener), 9 multiples, 13 StarMine pass rule, 14 sector, plus the quality composite (2, 3, 15).
    - Coverage-aware ranking, top 50 CSV/Markdown report. Calibrate composite thresholds on known tickers.

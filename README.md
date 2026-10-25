@@ -56,6 +56,7 @@ Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.cs
 ```
 uv run --python 3.13 scripts/merge_screener.py                  # Fidelity screener yield-band .xls files -> screener_results.xlsx
 uv run --python 3.13 scripts/check_month.py                     # check the month folder: files present and loading
+uv run --python 3.13 scripts/build_dataset.py                   # combined per-ticker dataset -> data/dataset/<YYYY-MM>.csv
 uv run --python 3.13 scripts/coverage_spike.py                  # data coverage report -> data/spike_out/report.md
 uv run --python 3.13 scripts/finnhub_vs_edgar.py --tickers JNJ,KO   # Finnhub vs EDGAR spot-check
 uv run --python 3.13 scripts/revision_spike.py                  # analyst revision data coverage -> data/revision_out/report.md

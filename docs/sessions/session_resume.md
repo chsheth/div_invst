@@ -13,15 +13,15 @@ Decided 2026-10-25 (see `ideas_v2.md` decisions log): StarMine pass rule, yfinan
 1. **Dividend Vision: dropped** (user decision 2026-10-25). Its scripts, loader, conservative streak rule and `ccc_list.csv` are removed; CCC streaks are DRIP bands.
 2. **Holdings file layout:** the user has no holdings file yet.
 3. **Criteria 2, 3, 15:** now proxies from a quality composite built from the screener (`ideas_v2.md` "Quality composite"); thresholds are defaults to calibrate once the screener loader exists. Stewardship, Jefferson grades and Ford have no direct source.
-4. **Build:** screener loader, then the data layer; review the plan and build order.
+4. **Build:** criteria engine on the combined dataset, then the data layer; review the plan and build order.
 5. The 16 DRIP/Dividend Vision tier conflicts are moot now that Dividend Vision is dropped.
 
 ## Session 6 summary (2026-10-25)
+- Built the screener loader and the combined per-ticker dataset (`reference/screener.py`, `reference/dataset.py`, `scripts/build_dataset.py`): 2,908 tickers, 681 of 684 CCC names in the screener (CABO, TGLS, XOM missing), key CCC fields 73% to 100% filled. Writes `data/dataset/2026-10.csv`.
 - Decisions and checks recorded in `ideas_v2.md` and `../research/fidelity_screener.md` section 7. Dividend Vision dropped; criteria 2, 3 and 15 get a collective quality composite from the screener.
 - Fidelity screener: first download (four bands) replaced by a second (seven bands, 0.07% and up, 62 Search Criteria columns) merged to `docs/reference/2026-10/screener_results.xlsx` (2,883 stocks, 5 tabs) with `scripts/merge_screener.py` (now prints each band and rejects copies); reviewed against the criteria (see `ideas_v2.md` "Fidelity screener"). StarMine ESS fills criterion 13; S&P Financial Health and Quality scores are candidates for criterion 1 (calibrate first).
 - `reference.py` became the `reference/` package; wrote the Morningstar and Argus PDF loaders (Morningstar also reads the Pick List Deletions table), `scripts/check_month.py`, and `docs/guides/monthly_drop.md` (the monthly steps). PyMuPDF is now a project dependency.
 - Raw screener `.xls` files deleted after the merge; only `screener_results.xlsx` is kept.
-- Still to write: the screener loader (`src/div_invst/reference/`).
 
 ## Session 5 summary (2026-10-22)
 - User added reference material under `docs/reference/` (gitignored): `2026-10/` holds the monthly drops (Morningstar large and mid cap pick lists, Argus Top 30, `drip_ccc.csv`, `ccc_list.csv`) and `samples/` holds the one-off Argus, CFRA, Morningstar and Fidelity files. Only the pick lists, Argus Top 30 and the DRIP export are tabular enough to use; the rest is commentary.
@@ -73,7 +73,7 @@ Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs
 - Git: last commit is `ff88cd9` on `main` (not pushed); the session 6 work (reference package, screener merge, check script, guide, docs) is uncommitted. `.env`, `data/` and `docs/reference/` are ignored.
 
 ## Next steps (ordered)
-1. Slice 1 (see `../plan/PLAN.md` "Build phases"): screener loader, criteria engine skeleton with `config.toml`, screener-based criteria and the quality composite, ranked top 50 report.
+1. Slice 1 (see `../plan/PLAN.md` "Build phases"): the combined dataset is built (`scripts/build_dataset.py`); next is the criteria engine skeleton with `config.toml`, screener-based criteria and the quality composite, ranked top 50 report.
 2. Slice 2: data layer + SQLite cache (yfinance, Finnhub, EDGAR, FRED) with run snapshots.
 3. Slice 3: remaining criteria (Financial Strength proxy, fair value, earnings history, insider, revision proxy as second signal, REIT FFO proxy).
 4. Slice 4: holdings loader (when the user has the file), diversification cut, exit report.

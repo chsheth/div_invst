@@ -9,6 +9,7 @@ What the monthly Fidelity stock screener download contains, how to read it, and 
 - Snapshot time is in the raw files' footer: "AS OF 02:04 AM ET 10/25/2026, quotes delayed at least 15 minutes" (bands were downloaded within about 12 hours of each other).
 
 ## 2. Layout and parsing rules
+The loader `src/div_invst/reference/screener.py` applies these rules and the unit conversions below (percent columns become fractions, market cap becomes dollars, `--` becomes unknown) and names every field in snake_case. `dataset.py` joins it with the other sources.
 - Five tabs, each with one header row and one row per stock. Join tabs on `Symbol` (unique after the merge). `Company Name` is the second column on every tab.
 - The raw files end with disclaimer lines (Fidelity address, "All data is historical and is subject to revision", the as-of line, and a note that highlighted cells are user-added). They have no Company Name and are removed by the merge. Raw files also carry a few blank rows before the footer.
 - Missing values appear as an empty cell, or as the text `--` (seen in `P/E (Price/TTM Earnings)`, `Sector`, `Industry`, `Market Capitalization`, `Jefferson Research`, `Trading Central`, `McLean Capital Management`, and some others). Treat `--` as unknown, never as zero. `P/E` is stored as text for this reason; convert with a coercing parser.
