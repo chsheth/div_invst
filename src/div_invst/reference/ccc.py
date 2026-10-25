@@ -1,4 +1,4 @@
-"""Loaders for the manual monthly reference downloads in docs/reference/<YYYY-MM>/.
+"""CCC universe loaders for the monthly reference downloads in docs/reference/<YYYY-MM>/.
 
 drip_ccc.csv   DRIP Investing "All CCC" export (the primary CCC universe, with yield, growth and valuation columns)
 ccc_list.csv   Dividend Vision CCC lists from scripts/fetch_ccc.py (adds streak years)
@@ -7,12 +7,9 @@ Percent columns become fractions (6.80% -> 0.068), dollar and multiple columns b
 cells become None.
 """
 import csv
-import re
-from datetime import datetime
 from pathlib import Path
 
-REFERENCE_DIR = Path(__file__).resolve().parents[2] / "docs" / "reference"
-MONTH_DIR = re.compile(r"\d{4}-\d{2}")
+from .common import clean, latest_month_dir
 
 # DRIP column -> (field name, kind); kinds: str, pct, num, int, date
 DRIP_COLUMNS = {
@@ -60,40 +57,12 @@ def tier_for_streak(streak: int | None) -> str | None:
     return None
 
 
-def latest_month_dir(root: Path = REFERENCE_DIR, today: str | None = None) -> Path:
-    """Newest YYYY-MM folder (not after `today`'s month when given). Raises FileNotFoundError when there is none."""
-    months = sorted(p for p in root.iterdir() if p.is_dir() and MONTH_DIR.fullmatch(p.name) and (today is None or p.name <= today[:7]))
-    if not months:
-        raise FileNotFoundError(f"no YYYY-MM folder in {root}")
-    return months[-1]
-
-
-def _clean(raw: str, kind: str):
-    s = (raw or "").strip()
-    if s in ("", "-", "N/A", "n/a"):
-        return None
-    if kind == "str":
-        return s
-    if kind == "date":
-        try:
-            return datetime.strptime(s, "%b %d, %Y").date()
-        except ValueError:
-            return None
-    t = s.replace("$", "").replace(",", "").replace("x", "")
-    try:
-        if kind == "pct":
-            return round(float(t.replace("%", "")) / 100, 6)
-        return int(float(t)) if kind == "int" else float(t)
-    except ValueError:
-        return None
-
-
 def load_drip(path: Path) -> dict[str, dict]:
     """DRIP CCC export keyed by ticker. Unknown columns are ignored; a missing known column is left out of the row."""
     out = {}
     with open(path, newline="", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
-            rec = {name: _clean(row[col], kind) for col, (name, kind) in DRIP_COLUMNS.items() if col in row}
+            rec = {name: clean(row[col], kind) for col, (name, kind) in DRIP_COLUMNS.items() if col in row}
             if rec.get("ticker"):
                 out[rec["ticker"]] = rec
     return out

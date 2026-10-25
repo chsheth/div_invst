@@ -7,8 +7,8 @@ Build a tool that aggregates dividend stock data/history, screens it against the
 **Data / universe**
 - Free sources first; evaluate adequacy, then consider paid.
 - Universe: ALL dividend payers. Aristocrats/Champions/Contenders (CCC) flagged as primary tier; others included so matches outside CCC are not missed.
-- CCC lists (settled 2026-10-22): DRIP Investing "All CCC" export (emailed monthly, manual drop; 684 stocks) is the primary universe and tier; Dividend Vision public tables (`scripts/fetch_ccc.py`, 288 stocks) add streak years. When the two disagree the conservative (lower) streak is used. Loader: `src/div_invst/reference.py`; comparison: `scripts/compare_ccc.py`.
-- Monthly manual inputs in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv`, `ccc_list.csv`, Morningstar large and mid cap pick lists, Argus Top 30, optional `ratings.csv`. Details in `ideas_v2.md`.
+- CCC lists (settled 2026-10-22): DRIP Investing "All CCC" export (emailed monthly, manual drop; 684 stocks) is the primary universe and tier; Dividend Vision public tables (`scripts/fetch_ccc.py`, 288 stocks) add streak years. When the two disagree the conservative (lower) streak is used. Loaders: `src/div_invst/reference/` (package: `ccc.py`, `morningstar.py`, `argus.py`, `common.py`); comparison: `scripts/compare_ccc.py`.
+- Monthly manual inputs in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv`, `ccc_list.csv`, `screener_results.xlsx` (Fidelity screener, 62 columns, 2,883 stocks, merged from seven yield bands), Morningstar large and mid cap pick lists, Argus Top 30, optional `ratings.csv`. Steps: `docs/guides/monthly_drop.md`; screener columns: `docs/research/fidelity_screener.md`; mapping: `ideas_v2.md`.
 
 **Inputs**
 - Holdings file: Excel or CSV, user is assembling it. Ticker required; shares optional. No cost basis (no tax logic).
@@ -43,7 +43,7 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 
 **Paywalled criteria**
 - Crit 1 credit ratings: computed Financial Strength proxy score + optional manual rating column override.
-- Crit 13 StarMine: estimate-revision proxy (labeled as proxy; weights in `ideas_v2.md`); manual override column. Broker research (Fidelity, Schwab, Robinhood) has no API, so it is used only for occasional manual spot checks and calibration.
+- Crit 13 StarMine: the screener's LSEG StarMine Equity Summary Score is the primary input (5 levels, 47% of all stocks and 92% of CCC names); the estimate-revision proxy (labeled as proxy; weights in `ideas_v2.md`) is the second signal and fills names the screener lacks. Broker research (Fidelity, Schwab, Robinhood) has no API, so it is used only for occasional manual spot checks and calibration.
 - Crit 15 accuracy calls: manual yes/no check on finalists; drop if not workable.
 
 **Tech**
@@ -54,19 +54,19 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 | # | Criterion | Free source candidate | Confidence |
 |---|-----------|-----------------------|------------|
 | Universe | CCC lists + streak years | DRIP "All CCC" export + Dividend Vision (conservative streak) | High |
-| 1 | Credit ratings, low debt (debt/mkt cap <50% or 3:1 coverage), payout <=60% | Proxy score (below) from statements | Medium |
+| 1 | Credit ratings, low debt (debt/mkt cap <50% or 3:1 coverage), payout <=60% | Proxy score (below) from statements; screener interest coverage, debt to capital and S&P scores as inputs or cross-checks | Medium |
 | 2 | Management quality | Manual column | Low |
 | 3 | Jefferson quality grades | Manual column | Low |
 | 4 | Yield 1.5-2.5x S&P (flag above 2.5x) | yfinance yield, SPY yield | High |
 | 5 | Chowder rule | yield + dividend history CAGR | High |
-| 6 | ACN: min(10%,Y)+min(30%,avg(min(D,E,R),median(D,E,R))) | Finnhub annual series (EDGAR for banks) + forward yield | Medium |
+| 6 | ACN: min(10%,Y)+min(30%,avg(min(D,E,R),median(D,E,R))) | Finnhub annual series (EDGAR for banks) + forward yield; screener 5-yr dividend, EPS and revenue growth as cross-check | Medium |
 | 7 | Rising dividend 5+ yrs; earnings 7 of 10 | CCC streak from DRIP band + Dividend Vision (conservative); non-CCC streak from yfinance as a screen; EPS from Finnhub annual series, EDGAR for banks | Medium |
 | 8 | Discount to fair value | Own DDM / PE-vs-hist-PE | Medium |
 | 9 | P/S, P/E, P/B, price/cash | statements + info; FRED for bond rate | High/Med |
-| 10 | PE vs hist PE, ROE, ROIC trend, est. growth | Finnhub annual series (back to 1985), yfinance estimates, EDGAR cross-check | High |
+| 10 | PE vs hist PE, ROE, ROIC trend, est. growth | Finnhub annual series (back to 1985), yfinance estimates, EDGAR cross-check; screener ROI and next-year EPS growth | High |
 | 11 | Cash growth YoY | statements | High |
-| 12 | Insider buying | yfinance or Finnhub insider transactions | High |
-| 13 | StarMine 7+ | Revision proxy 0-10, pass at 7+ (yfinance eps_trend, eps_revisions, upgrades_downgrades, price targets; Finnhub recommendations); manual override | Medium |
+| 12 | Insider buying | yfinance or Finnhub insider transactions; screener Net Insider Shares Bought shows buys only | High |
+| 13 | StarMine 7+ | Screener StarMine Equity Summary Score (primary); revision proxy 0-10, pass at 7+ (yfinance eps_trend, eps_revisions, upgrades_downgrades, price targets; Finnhub recommendations) as second signal | Medium/High |
 | 14 | Diversification | Sector from yfinance vs holdings | High |
 | 15 | Accuracy calls | Manual flag | Low |
 
@@ -86,7 +86,8 @@ Spike findings: `docs/research/data_sources.md` (2026-10-18, 4 tickers) and `doc
 - Dividend.com - DARS rating, yield/streak data. No free API; scraping restricted by ToS -> MANUAL cross-check (U)
 - Finnhub free - TESTED, primary history source (annual series to 1985, recommendations, insider transactions; price targets and dividends are premium). Alpha Vantage - TESTED, dropped (25 calls/day).
 - Other candidate APIs (all U, not tested): Tiingo (free tier, dividends + prices), Nasdaq.com dividend-history endpoints (unofficial), Stooq (free price CSV), OpenBB / FinanceToolkit libraries (aggregators over Yahoo/FMP), Digrin / StockAnalysis.com / Macrotrends / Finviz (view-only cross-checks; scraping ToS restricted)
-- Manual-lookup references (not automated): Fidelity (StarMine, Jefferson/Ford), Value Line (Delaware Public library, lib.de.us), Morningstar, S&P Capital IQ, dividendinvestor.com (for cross-checking streaks/CAGR)
+- Fidelity stock screener - manual monthly download in yield bands, merged by `scripts/merge_screener.py`; USED (2026-10-25) for StarMine ESS, interest coverage, debt to capital, 5-yr growth rates, ROI, margins, sector
+- Manual-lookup references (not automated): Fidelity research pages (Jefferson/Ford grades), Value Line (Delaware Public library, lib.de.us), Morningstar, S&P Capital IQ, dividendinvestor.com (for cross-checking streaks/CAGR)
 
 ## Financial Strength Score (proxy for criterion 1)
 0-100; tier A>=80, B 65-79, C 50-64, D<50; shown as "proxy tier", never a named rating.
@@ -102,6 +103,7 @@ Rule: decisions live in ideas_v2.md; session_resume.md points to them and lists 
 
 ## Build phases
 1. **Done 2026-10-19.** Data spike (`scripts/coverage_spike.py`, 21 tickers, plus `scripts/finnhub_vs_edgar.py`): field coverage, source choices, Python version. Open follow-ups: REIT FFO source, small-cap coverage (the Dividend Vision streak cross-check was done 2026-10-22). Revision spike done 2026-10-21 (`scripts/revision_spike.py`).
+1b. **Done 2026-10-25.** Monthly reference loaders (`src/div_invst/reference/`: CCC, Morningstar, Argus) plus `scripts/merge_screener.py` and `scripts/check_month.py`. Still to write: the screener loader.
 2. Data layer + SQLite cache under `src/div_invst/`: universe, prices, dividends, Finnhub annual series, EDGAR (CIK override, extended tag chains, split adjustment, bank path), analyst and insider data, FRED. Refresh cadence per `data_sources.md` section 4.
 3. Criteria engine: each criterion returns pass/fail/unknown + value; thresholds in TOML config. Include Financial Strength proxy.
 4. Holdings loader (xlsx/csv) + diversification cut.

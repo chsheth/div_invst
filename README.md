@@ -9,7 +9,7 @@ criteria, and produces:
 Focus is on dividend Aristocrats, Champions and Contenders, but all US dividend payers are screened.
 
 ## Status
-Planning, the data coverage spike and the revision data spike are complete, and the default thresholds are settled; the application is not built yet. See `docs/sessions/session_resume.md` for the current state and next steps.
+Planning, the data coverage spike, the revision data spike and the monthly reference loaders (CCC, Morningstar, Argus) are complete, and the default thresholds are settled; the application itself is not built yet. See `docs/sessions/session_resume.md` for the current state and next steps.
 
 ## Documents
 | File | Purpose |
@@ -19,6 +19,8 @@ Planning, the data coverage spike and the revision data spike are complete, and 
 | `docs/research/data_sources.md` | Data source research: which sources work programmatically, element-to-source map |
 | `docs/research/coverage_spike_2026-10-19.md` | Coverage spike results on 21 tickers: source verdicts, EDGAR tag chains, Finnhub vs EDGAR checks |
 | `docs/research/revision_spike_2026-10-21.md` | Analyst revision data coverage for the StarMine-style proxy (criterion 13) |
+| `docs/research/fidelity_screener.md` | Column-by-column reference for the monthly Fidelity screener download (layout, units, fill rates, open checks) |
+| `docs/guides/monthly_drop.md` | Step-by-step for the monthly reference drop: what to download, file names, commands, checks |
 | `docs/plan/PLAN.md` | Build plan, phases |
 | `docs/sessions/session_resume.md` | Session summaries, open questions, next steps (start here when resuming) |
 
@@ -48,11 +50,13 @@ EDGAR_USER_AGENT=div-invst you@example.com
 (`FMP_API_KEY` and `ALPHAVANTAGE_API_KEY` are only read by the spike script.)
 
 ## Monthly reference inputs
-Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv` (DRIP "All CCC" email export), Morningstar large and mid cap pick list PDFs, Argus Top 30 PDF, optional `ratings.csv`; `ccc_list.csv` is written by the fetch script. See `docs/criteria/ideas_v2.md`.
+Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv` (DRIP "All CCC" email export), `screener_results.xlsx` (Fidelity screener yield bands, merged by `scripts/merge_screener.py`), Morningstar large and mid cap pick list PDFs, Argus Top 30 PDF, optional `ratings.csv`; `ccc_list.csv` is written by the fetch script. Step-by-step: `docs/guides/monthly_drop.md`. Details: `docs/criteria/ideas_v2.md`.
 
 ## Scripts
 ```
 uv run --python 3.13 scripts/fetch_ccc.py                       # Dividend Vision CCC lists -> docs/reference/<YYYY-MM>/ccc_list.csv
+uv run --python 3.13 scripts/merge_screener.py                  # Fidelity screener yield-band .xls files -> screener_results.xlsx
+uv run --python 3.13 scripts/check_month.py                     # check the month folder: files present and loading
 uv run --python 3.13 scripts/compare_ccc.py                     # DRIP vs Dividend Vision vs computed -> data/ccc_compare.md
 uv run --python 3.13 scripts/coverage_spike.py                  # data coverage report -> data/spike_out/report.md
 uv run --python 3.13 scripts/finnhub_vs_edgar.py --tickers JNJ,KO   # Finnhub vs EDGAR spot-check

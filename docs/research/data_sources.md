@@ -10,6 +10,8 @@ Written 2026-10-18. Purpose: for every data element behind the criteria in `../c
 
 **Updated 2026-10-19:** the full coverage spike (21 tickers) ran after this draft. FMP and Finnhub are now tested, the CCC route and key questions are answered, and the per-criterion source choices changed. Results and the superseding source list: `coverage_spike_2026-10-19.md`. Where this file and the spike doc differ, the spike doc wins; sections 1 and 4 are unchanged.
 
+**Updated 2026-10-25:** the Fidelity stock screener download (manual, monthly) supplies the LSEG StarMine Equity Summary Score, interest coverage, 5-yr growth rates and more, so the "Fidelity StarMine" row below is no longer fully blocked: it is available as a manual monthly file. See `fidelity_screener.md`; the table below is left as the original 2026-10-18 findings.
+
 Original 2026-10-18 spike scope: yfinance 1.7.0 on 4 tickers (JNJ, KO, O, XOM); SEC EDGAR company facts for JNJ only; FRED CSV; the DRIP Investing and Dividend Vision pages. Four tickers is a sanity check, not coverage proof. The real coverage spike is still the next step.
 
 ## 1. Original sources from ideas_v1.md: can they be used programmatically?
