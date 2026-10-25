@@ -1,7 +1,5 @@
-"""CCC universe loaders for the monthly reference downloads in docs/reference/<YYYY-MM>/.
-
-drip_ccc.csv   DRIP Investing "All CCC" export (the primary CCC universe, with yield, growth and valuation columns)
-ccc_list.csv   Dividend Vision CCC lists from scripts/fetch_ccc.py (adds streak years)
+"""CCC universe loader for the monthly DRIP Investing "All CCC" export (docs/reference/<YYYY-MM>/drip_ccc.csv): the CCC
+universe with tier, yield, growth and valuation columns. The tier (Stock Type) gives a streak band, not exact years.
 
 Percent columns become fractions (6.80% -> 0.068), dollar and multiple columns become floats, and blank or "-"
 cells become None.
@@ -30,33 +28,6 @@ DRIP_COLUMNS = {
 DRIP_TIER_YEARS = {"Challenger": (5, 9), "Contender": (10, 24), "Champion": (25, 49), "King": (50, None)}
 
 
-def conservative_streak(drip_tier: str | None, dv_streak: int | None) -> tuple[int | None, str]:
-    """Streak years to trust and how it was settled, taking the lower figure when the sources disagree.
-
-    verified   Dividend Vision streak sits inside the DRIP Stock Type band: use it.
-    conflict   outside the band: use the lower claim (the band's top when Dividend Vision is higher, else its streak).
-    band_only  not on Dividend Vision: use the bottom of the DRIP band.
-    dv_only    not on DRIP: use the Dividend Vision streak unchecked.
-    """
-    band = DRIP_TIER_YEARS.get(drip_tier or "")
-    if band is None:
-        return (dv_streak, "dv_only") if dv_streak is not None else (None, "none")
-    lo, hi = band
-    if dv_streak is None:
-        return lo, "band_only"
-    if dv_streak >= lo and (hi is None or dv_streak <= hi):
-        return dv_streak, "verified"
-    return (min(dv_streak, hi) if hi is not None else dv_streak), "conflict"
-
-
-def tier_for_streak(streak: int | None) -> str | None:
-    """CCC tier name for a streak (below 5 years is None)."""
-    for tier, (lo, hi) in DRIP_TIER_YEARS.items():
-        if streak is not None and streak >= lo and (hi is None or streak <= hi):
-            return tier
-    return None
-
-
 def load_drip(path: Path) -> dict[str, dict]:
     """DRIP CCC export keyed by ticker. Unknown columns are ignored; a missing known column is left out of the row."""
     out = {}
@@ -68,33 +39,13 @@ def load_drip(path: Path) -> dict[str, dict]:
     return out
 
 
-def load_dividend_vision(path: Path) -> dict[str, dict]:
-    """Dividend Vision CCC list written by scripts/fetch_ccc.py, keyed by ticker (percent columns stay in percent)."""
-    out = {}
-    with open(path, newline="") as f:
-        for row in csv.DictReader(f):
-            out[row["ticker"]] = {**row, "streak": int(row["streak"]), "lists": row["lists"].split("|")}
-    return out
-
-
 def load_universe(month_dir: Path | None = None) -> dict[str, dict]:
-    """DRIP rows (primary) merged with Dividend Vision streak and tier. A ticker only in Dividend Vision gets a
-    minimal row with `in_drip` False. Fields added: dv_tier, dv_streak, in_drip, in_dv, plus the conservative `streak`,
-    its `streak_basis` and `tier_effective` (see conservative_streak). Use `streak`, not `dv_streak`, for criterion 7."""
+    """DRIP rows keyed by ticker, with the streak band added: `streak_min` and `streak_max` (years of consecutive
+    increases implied by the Stock Type; `streak_max` None for Kings). Criterion 7 (dividend up 5+ years) passes for
+    every row, since the lowest band starts at 5."""
     month_dir = month_dir or latest_month_dir()
-    drip = load_drip(month_dir / "drip_ccc.csv")
-    dv_path = month_dir / "ccc_list.csv"
-    dv = load_dividend_vision(dv_path) if dv_path.exists() else {}
     out = {}
-    for t, rec in drip.items():
-        d = dv.get(t)
-        dv_streak = d["streak"] if d else None
-        streak, basis = conservative_streak(rec["tier"], dv_streak)
-        out[t] = {**rec, "dv_tier": d["tier"] if d else None, "dv_streak": dv_streak, "in_drip": True, "in_dv": d is not None,
-                  "streak": streak, "streak_basis": basis, "tier_effective": tier_for_streak(streak)}
-    for t, d in dv.items():
-        if t not in out:
-            out[t] = {"ticker": t, "company": d["company"], "sector": d["sector"], "tier": None, "dv_tier": d["tier"],
-                      "dv_streak": d["streak"], "in_drip": False, "in_dv": True, "streak": d["streak"],
-                      "streak_basis": "dv_only", "tier_effective": tier_for_streak(d["streak"])}
+    for t, rec in load_drip(month_dir / "drip_ccc.csv").items():
+        lo, hi = DRIP_TIER_YEARS.get(rec["tier"], (None, None))
+        out[t] = {**rec, "streak_min": lo, "streak_max": hi}
     return out

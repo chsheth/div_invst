@@ -15,14 +15,13 @@ Use the exact `YYYY-MM` name. Use the file names below exactly; the loaders look
 | Step | File name | Required | Where it comes from | How |
 |------|-----------|----------|---------------------|-----|
 | a | `drip_ccc.csv` | yes | DRIP Investing "All CCC" export, sent by email | Save the attachment into the folder and rename it. Keep the original columns untouched. |
-| b | `ccc_list.csv` | yes | Dividend Vision CCC lists | Written for you: `uv run --python 3.13 scripts/fetch_ccc.py`. Fetch once a month only (their terms of use are still to be confirmed). |
-| c | `screener_results*.xls` files, then `screener_results.xlsx` | yes | Fidelity stock screener | Download one `.xls` per yield band (see below), save them all in the folder with their default names, then run `uv run --python 3.13 scripts/merge_screener.py`. The merged `screener_results.xlsx` is the monthly file, saved in the folder like `drip_ccc.csv`. |
-| d | `morningstar_large_cap.pdf` | optional | Morningstar US Large Cap Pick List (monthly PDF) | Save and rename. |
-| e | `morningstar_mid_cap.pdf` | optional | Morningstar US Mid Cap Pick List (monthly PDF) | Save and rename. |
-| f | `argus_top30.pdf` | optional | Argus Portfolio Selector, the issue with the Top 30 and the Stock Screen | Save and rename. |
-| g | `ratings.csv` | optional | Your own notes | Columns `as_of, ticker, source, rating, target_price`. |
+| b | `screener_results*.xls` files, then `screener_results.xlsx` | yes | Fidelity stock screener | Download one `.xls` per yield band (see below), save them all in the folder with their default names, then run `uv run --python 3.13 scripts/merge_screener.py`. The merged `screener_results.xlsx` is the monthly file, saved in the folder like `drip_ccc.csv`. |
+| c | `morningstar_large_cap.pdf` | optional | Morningstar US Large Cap Pick List (monthly PDF) | Save and rename. |
+| d | `morningstar_mid_cap.pdf` | optional | Morningstar US Mid Cap Pick List (monthly PDF) | Save and rename. |
+| e | `argus_top30.pdf` | optional | Argus Portfolio Selector, the issue with the Top 30 and the Stock Screen | Save and rename. |
+| f | `ratings.csv` | optional | Your own notes | Columns `as_of, ticker, source, rating, target_price`. |
 
-### Fidelity screener (step c)
+### Fidelity screener (step b)
 Column reference, units and parsing rules: `docs/research/fidelity_screener.md`.
 - Use the same saved screen every month, with all five tabs/views: Search Criteria, Basic Facts, Performance & Volatility, Valuation Growth & Ownership, Analyst Opinions. The Search Criteria view must carry the full 62 columns (listed in `ideas_v2.md`, "Fidelity screener"). Do not add, remove or rename columns, because the merge stops if the files disagree.
 - Add fields as display columns only. Do not set criteria on margins, ROI, SG&A, insider activity or similar fields: Fidelity drops every stock with a blank value in a field it filters on.
@@ -42,7 +41,6 @@ It prints one line per file: found or missing, whether it loads, and a count. Ty
 
 ```
 ok  drip_ccc.csv                 684 stocks
-ok  ccc_list.csv                 288 stocks
 ok  screener_results.xlsx        2883 stocks, 5 tabs
 ok  morningstar_large_cap.pdf    60 picks, 7 deletions, as of 2026-09-30
 ok  morningstar_mid_cap.pdf      30 picks, 7 deletions, as of 2026-09-30
@@ -52,16 +50,15 @@ What to look at:
 - **Counts far from last month** (for example 684 CCC stocks dropping to 400, or 30 Argus rows dropping to 0) mean a wrong file or a changed layout.
 - **`FAILED` on a PDF** means the layout changed. The parser raises on any row it cannot read rather than skipping it. Send the file or the error and the parser gets adjusted.
 - **A missing optional file** is fine; criteria that use it stay unknown for that month.
-- **The "raw .xls newer than the .xlsx" note:** rerun the merge in step c.
+- **The "raw .xls newer than the .xlsx" note:** rerun the merge in step b.
 
-## 4. Optional follow-ups
-- `uv run --python 3.13 scripts/compare_ccc.py` rebuilds `data/ccc_compare.md`, the DRIP vs Dividend Vision tier conflicts to review by hand.
+## 4. Follow-up
 - Update the folder's own `README.md` if a file's source or format changed.
 
 ## What each file feeds
 | File | Used for |
 |------|----------|
-| `drip_ccc.csv`, `ccc_list.csv` | CCC universe, tier, dividend streak (criterion 7), 5-year average yield (exit rule 2) |
+| `drip_ccc.csv` | CCC universe, tier and streak band (criterion 7) |
 | `screener_results.xlsx` | StarMine score and Zacks (13), interest coverage, debt to capital and S&P scores (1), 5-yr EPS and revenue growth (ACN, 6), ROI and next-year EPS growth (10), SG&A and margins (3 proxy), insider buying (12, partial), multiples (9), sector (14), dividend cut check (exit rule 3) |
 | Morningstar PDFs | Fair value cross-check (8), rating, moat, uncertainty (2, 3); "deleted" status is a possible exit signal |
 | Argus PDF | Financial Strength grade (1), target-style cross-checks |
@@ -75,9 +72,7 @@ Detail on each source's columns and verdicts: `docs/criteria/ideas_v2.md` ("Mont
 | Morningstar pick-list loader | `src/div_invst/reference/morningstar.py` |
 | Argus loader | `src/div_invst/reference/argus.py` |
 | Shared helpers (month folder lookup, cell cleaning, PDF text) | `src/div_invst/reference/common.py` |
-| Dividend Vision fetch | `scripts/fetch_ccc.py` |
 | Screener merge | `scripts/merge_screener.py` |
 | Folder check | `scripts/check_month.py` |
-| DRIP vs Dividend Vision comparison | `scripts/compare_ccc.py` |
 
 Not yet written: the loader for `screener_results.xlsx` (it can be read only through the merge and the check so far).

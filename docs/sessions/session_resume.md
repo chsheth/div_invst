@@ -1,6 +1,6 @@
 # Session Resume
 
-_Last updated: 2026-10-25 (session 6)_
+_Last updated: 2026-10-25 (session 6, ready to build)_
 
 ## How to resume
 1. Read `../criteria/ideas_v2.md` (criteria table A-E, exit rules, decisions log).
@@ -8,14 +8,16 @@ _Last updated: 2026-10-25 (session 6)_
 3. Read `../research/fidelity_screener.md` (the Fidelity screener download: columns, units, open checks) and `../guides/monthly_drop.md` (the monthly steps).
 4. Read `../plan/PLAN.md` (build phases). Then answer the open questions below and start phase 2.
 
-## To check next session
-1. Review the 16 DRIP vs Dividend Vision tier conflicts by hand (ABBV, ABT, ADC, AMCR, CAH, CSL, GRC, GS, HTO, MCD, MLM, MS, MSEX, MZTI, NC, PNR; list in `data/ccc_compare.md`, rerun `scripts/compare_ccc.py`). Until then the conservative (lower) streak is used.
-2. Pick the 5-yr average yield source for exit rule 2: DRIP `5Y Avg Yield` vs yfinance `fiveYearAvgDividendYield` (DRIP runs about 0.2 points higher; MO 8.83% vs 7.42%).
-3. Confirm Dividend Vision's terms of use allow one fetch a month.
-4. Fidelity screener open checks (list in `../research/fidelity_screener.md` section 7): why XOM is missing, what Net Insider Shares Bought measures, S&P score direction, I/B/E/S scale, Fidelity growth rates vs Finnhub CAGRs.
-5. After 1-4, review the plan (`../plan/PLAN.md`) and the build order.
+## Pending decisions and checks (updated 2026-10-25)
+Decided 2026-10-25 (see `ideas_v2.md` decisions log): StarMine pass rule, yfinance 5-yr average yield for exit rule 2, Finnhub for insider transactions, REIT FFO proxy, Morningstar deletions kept as info only, conservative streak rule kept, S&P scores informational only.
+1. **Dividend Vision: dropped** (user decision 2026-10-25). Its scripts, loader, conservative streak rule and `ccc_list.csv` are removed; CCC streaks are DRIP bands.
+2. **Holdings file layout:** the user has no holdings file yet.
+3. **Criteria 2, 3, 15:** now proxies from a quality composite built from the screener (`ideas_v2.md` "Quality composite"); thresholds are defaults to calibrate once the screener loader exists. Stewardship, Jefferson grades and Ford have no direct source.
+4. **Build:** screener loader, then the data layer; review the plan and build order.
+5. The 16 DRIP/Dividend Vision tier conflicts are moot now that Dividend Vision is dropped.
 
 ## Session 6 summary (2026-10-25)
+- Decisions and checks recorded in `ideas_v2.md` and `../research/fidelity_screener.md` section 7. Dividend Vision dropped; criteria 2, 3 and 15 get a collective quality composite from the screener.
 - Fidelity screener: first download (four bands) replaced by a second (seven bands, 0.07% and up, 62 Search Criteria columns) merged to `docs/reference/2026-10/screener_results.xlsx` (2,883 stocks, 5 tabs) with `scripts/merge_screener.py` (now prints each band and rejects copies); reviewed against the criteria (see `ideas_v2.md` "Fidelity screener"). StarMine ESS fills criterion 13; S&P Financial Health and Quality scores are candidates for criterion 1 (calibrate first).
 - `reference.py` became the `reference/` package; wrote the Morningstar and Argus PDF loaders (Morningstar also reads the Pick List Deletions table), `scripts/check_month.py`, and `docs/guides/monthly_drop.md` (the monthly steps). PyMuPDF is now a project dependency.
 - Raw screener `.xls` files deleted after the merge; only `screener_results.xlsx` is kept.
@@ -51,10 +53,7 @@ _Last updated: 2026-10-25 (session 6)_
 - The test universe was 21 large caps; small-cap coverage is untested.
 
 ## Open questions for the user
-1. Holdings file layout (still to supply).
-2. CCC list route: resolved 2026-10-22 (DRIP export + Dividend Vision, conservative streak). Still open: review the 16 DRIP/Dividend Vision tier conflicts by hand; decide the 5-yr average yield source for exit rule 2 (DRIP vs yfinance); confirm Dividend Vision's terms of use allow a monthly fetch.
-3. What do you pull from dividendinvestor.com (403 to my fetch)?
-4. Confirm proxies for credit quality; StarMine now comes from the screener's Equity Summary Score (pass line on its 5 levels to define); manual columns for Stewardship, Jefferson quality grades and Ford (criteria 2, 3, 15 stay unknown unless filled).
+See "Pending decisions and checks" above; it replaces the earlier list.
 
 Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs out of v1.
 
@@ -69,14 +68,13 @@ Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs
 - Data refreshes on a cadence (`data_sources.md` section 4) and feeds an enter/exit decision from threshold results.
 
 ## Repo state
-- Code: `main.py` is a hello-world stub; `src/div_invst/reference/` (package: ccc, morningstar, argus, common) loads the monthly reference files; `scripts/merge_screener.py` and `scripts/check_month.py` handle the Fidelity screener merge and the folder check; `scripts/fetch_ccc.py` and `scripts/compare_ccc.py` support them. `pyproject.toml` requires Python >=3.12, one dependency (pymupdf). `scripts/` holds the three spike scripts (PEP 723, run with `uv run --python 3.13`).
+- Code: `main.py` is a hello-world stub; `src/div_invst/reference/` (package: ccc, morningstar, argus, common) loads the monthly reference files; `scripts/merge_screener.py` and `scripts/check_month.py` handle the Fidelity screener merge and the folder check; `pyproject.toml` requires Python >=3.12, one dependency (pymupdf). `scripts/` also holds the spike scripts (PEP 723, run with `uv run --python 3.13`).
 - Docs: `docs/` holds criteria, guides, research, plan, sessions; all updated 2026-10-25.
 - Git: last commit is `ff88cd9` on `main` (not pushed); the session 6 work (reference package, screener merge, check script, guide, docs) is uncommitted. `.env`, `data/` and `docs/reference/` are ignored.
 
 ## Next steps (ordered)
-1. User supplies the holdings layout and confirms the remaining open questions. Drop each month's files in `docs/reference/<YYYY-MM>/`.
-2. Write the screener loader in `src/div_invst/reference/`. Spike follow-ups: review the 16 CCC tier conflicts; find a REIT FFO source; test a few small caps; calibrate the criterion 13 proxy against the screener's StarMine scores and check the screener open checks.
-3. Build the data layer + SQLite cache with scheduled refresh (`src/div_invst/`): Finnhub series, EDGAR (CIK overrides, tag chains, split adjustment, bank path), yfinance (including daily revision snapshots), FRED.
-4. Criteria engine + Financial Strength proxy + revision proxy + TOML config (thresholds from `ideas_v2.md`); enter/exit decision roll-up.
-5. Holdings loader + diversification cut; fair value, ranking, entry and exit reports.
-6. Tests and CLI.
+1. Slice 1 (see `../plan/PLAN.md` "Build phases"): screener loader, criteria engine skeleton with `config.toml`, screener-based criteria and the quality composite, ranked top 50 report.
+2. Slice 2: data layer + SQLite cache (yfinance, Finnhub, EDGAR, FRED) with run snapshots.
+3. Slice 3: remaining criteria (Financial Strength proxy, fair value, earnings history, insider, revision proxy as second signal, REIT FFO proxy).
+4. Slice 4: holdings loader (when the user has the file), diversification cut, exit report.
+5. Tests and CLI. Each month: follow `../guides/monthly_drop.md`.

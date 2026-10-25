@@ -25,10 +25,6 @@ def count_drip(p):
     return f"{len(ref.load_drip(p))} stocks"
 
 
-def count_dv(p):
-    return f"{len(ref.load_dividend_vision(p))} stocks"
-
-
 def count_morningstar(cap):
     def f(p):
         rows = ref.load_pick_list(p, cap)
@@ -52,7 +48,6 @@ def count_screener(p):
 # (file, required, source, checker)
 EXPECTED = [
     ("drip_ccc.csv", True, "DRIP Investing email export", count_drip),
-    ("ccc_list.csv", True, "scripts/fetch_ccc.py", count_dv),
     ("screener_results.xlsx", True, "scripts/merge_screener.py", count_screener),
     ("morningstar_large_cap.pdf", False, "Morningstar pick list", count_morningstar("large")),
     ("morningstar_mid_cap.pdf", False, "Morningstar pick list", count_morningstar("mid")),

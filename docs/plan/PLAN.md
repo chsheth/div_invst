@@ -7,8 +7,8 @@ Build a tool that aggregates dividend stock data/history, screens it against the
 **Data / universe**
 - Free sources first; evaluate adequacy, then consider paid.
 - Universe: ALL dividend payers. Aristocrats/Champions/Contenders (CCC) flagged as primary tier; others included so matches outside CCC are not missed.
-- CCC lists (settled 2026-10-22): DRIP Investing "All CCC" export (emailed monthly, manual drop; 684 stocks) is the primary universe and tier; Dividend Vision public tables (`scripts/fetch_ccc.py`, 288 stocks) add streak years. When the two disagree the conservative (lower) streak is used. Loaders: `src/div_invst/reference/` (package: `ccc.py`, `morningstar.py`, `argus.py`, `common.py`); comparison: `scripts/compare_ccc.py`.
-- Monthly manual inputs in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv`, `ccc_list.csv`, `screener_results.xlsx` (Fidelity screener, 62 columns, 2,883 stocks, merged from seven yield bands), Morningstar large and mid cap pick lists, Argus Top 30, optional `ratings.csv`. Steps: `docs/guides/monthly_drop.md`; screener columns: `docs/research/fidelity_screener.md`; mapping: `ideas_v2.md`.
+- CCC lists (settled 2026-10-22): DRIP Investing "All CCC" export (emailed monthly, manual drop; 684 stocks) is the primary universe and tier (streak band only). Dividend Vision was dropped 2026-10-25 because its terms prohibit automated extraction. Loaders: `src/div_invst/reference/` (package: `ccc.py`, `morningstar.py`, `argus.py`, `common.py`).
+- Monthly manual inputs in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv`, `screener_results.xlsx` (Fidelity screener, 62 columns, 2,883 stocks, merged from seven yield bands), Morningstar large and mid cap pick lists, Argus Top 30, optional `ratings.csv`. Steps: `docs/guides/monthly_drop.md`; screener columns: `docs/research/fidelity_screener.md`; mapping: `ideas_v2.md`.
 
 **Inputs**
 - Holdings file: Excel or CSV, user is assembling it. Ticker required; shares optional. No cost basis (no tax logic).
@@ -33,7 +33,7 @@ Build a tool that aggregates dividend stock data/history, screens it against the
 
 **Exit rules (report shows which trigger fired per holding)**
 1. Fair-value ceiling: price > fair value + 15%.
-2. Yield compression: yield <= 50% of 5-yr average yield.
+2. Yield compression: yield <= 50% of 5-yr average yield (yfinance `fiveYearAvgDividendYield`, decided 2026-10-25).
 3. Fundamental break (flag "review now"): dividend cut/freeze, payout ratio over limit, falling earnings.
 Per holding: current price, target sell price, % upside, trigger(s) fired.
 
@@ -53,14 +53,14 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 ## Criteria data map (updated after the 2026-10-19 spike)
 | # | Criterion | Free source candidate | Confidence |
 |---|-----------|-----------------------|------------|
-| Universe | CCC lists + streak years | DRIP "All CCC" export + Dividend Vision (conservative streak) | High |
+| Universe | CCC lists + tier (streak band) | DRIP "All CCC" export | High |
 | 1 | Credit ratings, low debt (debt/mkt cap <50% or 3:1 coverage), payout <=60% | Proxy score (below) from statements; screener interest coverage, debt to capital and S&P scores as inputs or cross-checks | Medium |
-| 2 | Management quality | Manual column | Low |
-| 3 | Jefferson quality grades | Manual column | Low |
+| 2 | Management quality | MSCI Governance from the screener (quality composite, weak proxy) | Low |
+| 3 | Jefferson quality grades | Quality composite from screener fields (balance sheet, cash flow, earnings quality, operating efficiency) | Low-Medium |
 | 4 | Yield 1.5-2.5x S&P (flag above 2.5x) | yfinance yield, SPY yield | High |
 | 5 | Chowder rule | yield + dividend history CAGR | High |
 | 6 | ACN: min(10%,Y)+min(30%,avg(min(D,E,R),median(D,E,R))) | Finnhub annual series (EDGAR for banks) + forward yield; screener 5-yr dividend, EPS and revenue growth as cross-check | Medium |
-| 7 | Rising dividend 5+ yrs; earnings 7 of 10 | CCC streak from DRIP band + Dividend Vision (conservative); non-CCC streak from yfinance as a screen; EPS from Finnhub annual series, EDGAR for banks | Medium |
+| 7 | Rising dividend 5+ yrs; earnings 7 of 10 | CCC streak from the DRIP tier band (5+ years for every CCC name); non-CCC streak from yfinance as a screen; EPS from Finnhub annual series, EDGAR for banks | Medium |
 | 8 | Discount to fair value | Own DDM / PE-vs-hist-PE | Medium |
 | 9 | P/S, P/E, P/B, price/cash | statements + info; FRED for bond rate | High/Med |
 | 10 | PE vs hist PE, ROE, ROIC trend, est. growth | Finnhub annual series (back to 1985), yfinance estimates, EDGAR cross-check; screener ROI and next-year EPS growth | High |
@@ -68,14 +68,14 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 | 12 | Insider buying | yfinance or Finnhub insider transactions; screener Net Insider Shares Bought shows buys only | High |
 | 13 | StarMine 7+ | Screener StarMine Equity Summary Score (primary); revision proxy 0-10, pass at 7+ (yfinance eps_trend, eps_revisions, upgrades_downgrades, price targets; Finnhub recommendations) as second signal | Medium/High |
 | 14 | Diversification | Sector from yfinance vs holdings | High |
-| 15 | Accuracy calls | Manual flag | Low |
+| 15 | Accuracy calls | Rating agreement across Jefferson, Zacks, McLean, Argus, StarMine, I/B/E/S (no Ford); manual override | Low-Medium |
 
 Spike findings: `docs/research/data_sources.md` (2026-10-18, 4 tickers) and `docs/research/coverage_spike_2026-10-19.md` (21 tickers; supersedes where they differ).
 
 ## Resources / websites used (status: V = seen in search, U = unverified until spike)
 - Dividend Radar (FerdiS / Portfolio Insight) - weekly CCC xlsx, free (V, file URL U); not used
 - DRIP Investing "All CCC" export - emailed, manual monthly drop; USED as the primary CCC universe (2026-10-22)
-- Dividend Vision CCC tables - public HTML, no key; USED via `scripts/fetch_ccc.py` for streak years (terms of use not read)
+- Dividend Vision CCC tables - DROPPED 2026-10-25: terms of use prohibit scraping and automated extraction without written consent
 - Morningstar pick lists and Argus Top 30 PDFs - manual monthly drops, optional cross-checks (criteria 8, 1, 2, 3)
 - Yahoo Finance via `yfinance` Python lib - prices, dividends, statements, info, sector, analyst data (U: field coverage and rate limits)
 - Financial Modeling Prep (FMP) free tier - TESTED, dropped: 5-year cap, partial symbol coverage
@@ -102,13 +102,18 @@ Banks/insurers scored separately; REITs use FFO payout + net debt/EBITDA. Missin
 Rule: decisions live in ideas_v2.md; session_resume.md points to them and lists next steps; README stays high level.
 
 ## Build phases
-1. **Done 2026-10-19.** Data spike (`scripts/coverage_spike.py`, 21 tickers, plus `scripts/finnhub_vs_edgar.py`): field coverage, source choices, Python version. Open follow-ups: REIT FFO source, small-cap coverage (the Dividend Vision streak cross-check was done 2026-10-22). Revision spike done 2026-10-21 (`scripts/revision_spike.py`).
-1b. **Done 2026-10-25.** Monthly reference loaders (`src/div_invst/reference/`: CCC, Morningstar, Argus) plus `scripts/merge_screener.py` and `scripts/check_month.py`. Still to write: the screener loader.
-2. Data layer + SQLite cache under `src/div_invst/`: universe, prices, dividends, Finnhub annual series, EDGAR (CIK override, extended tag chains, split adjustment, bank path), analyst and insider data, FRED. Refresh cadence per `data_sources.md` section 4.
-3. Criteria engine: each criterion returns pass/fail/unknown + value; thresholds in TOML config. Include Financial Strength proxy.
-4. Holdings loader (xlsx/csv) + diversification cut.
-5. Fair-value + ranking + entry report; exit-trigger calculator + exit report.
-6. Tests with fixture data; CLI in `main.py`.
+Done: (1) data spikes (coverage 2026-10-19, revisions 2026-10-21); (1b) monthly reference loaders for DRIP, Morningstar and Argus, `merge_screener.py`, `check_month.py`, the monthly guide (2026-10-25); all decisions needed to start are in `ideas_v2.md` (2026-10-25). Not blocking: the holdings file (the entry list runs without it).
+
+Build in vertical slices, so a ranked list exists early and heavier criteria are added to it:
+2. **Slice 1: screener-based entry list (no network).**
+   - `reference/screener.py`: load `screener_results.xlsx` (parse market cap text, `--` as unknown, units per `docs/research/fidelity_screener.md`), US-only filter (HQ country), join with the DRIP universe.
+   - Criteria engine skeleton: each criterion returns pass / fail / unknown + value; thresholds in `config.toml`.
+   - First criteria from the screener alone: 4 yield (S&P yield from SPY later, fixed placeholder first), 5 Chowder, 6 ACN (E and R from the screener), 9 multiples, 13 StarMine pass rule, 14 sector, plus the quality composite (2, 3, 15).
+   - Coverage-aware ranking, top 50 CSV/Markdown report. Calibrate composite thresholds on known tickers.
+3. **Slice 2: data layer + SQLite cache.** yfinance (prices, dividends, insider, revision snapshots stored daily, 5-yr average yield), Finnhub (annual series, insider transactions with codes), EDGAR (CIK overrides, tag chains, split adjustment, bank path, REIT FFO proxy), FRED (10-yr Treasury, CPI). Run snapshots from day one. Refresh cadence per `data_sources.md` section 4.
+4. **Slice 3: remaining criteria.** 1 (Financial Strength proxy), 7 (earnings 7 of 10, non-CCC streak), 8 fair value (DDM and PE-vs-historical-PE, lower), 10, 11, 12 (Finnhub codes), revision proxy as second signal for 13, exit-rule inputs.
+5. **Slice 4: holdings and exit.** Holdings loader (xlsx/csv, layout from the user), diversification cut, exit report (fair-value ceiling, yield compression using yfinance 5-yr average yield, fundamental break, Morningstar "deleted" shown as a note).
+6. **Tests and CLI.** Fixture-based unit tests per criterion, CLI in `main.py` (`--holdings`, `--month`), hand-check 3 known aristocrats.
 
 ## Verification
 - Docs: four files exist; ideas_v2.md decisions log matches this list; session_resume.md has next steps.

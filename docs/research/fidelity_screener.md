@@ -40,7 +40,7 @@ What the monthly Fidelity stock screener download contains, how to read it, and 
 | Standard Deviation (all periods) | Fraction: 0.18 means 18% annualised. |
 | Beta | Plain number. |
 | Coverage and liquidity ratios, price multiples | Plain multiples (x). |
-| Exceptions to check | `Cash Flow Growth Rate (TTM vs. Prior TTM)` looks like a fraction (KO 0.098; median 0.06) while the 3 and 5-year versions are percents (KO 9.4 and 8.8). `Operating Margin (TTM/5 Year Avg.)` is a ratio near 1.0. `Net Insider Shares Bought` is tiny (median 0, 95th percentile 0.011), probably millions of shares; unverified. |
+| Checked 2026-10-25 |  `Cash Flow Growth Rate (TTM vs. Prior TTM)` is a fraction (KO 0.098 vs 0.089 from yfinance annual operating cash flow), unlike the 3 and 5-year versions which are percents. `Operating Margin (TTM/5 Year Avg.)` is a ratio near 1.0. `Net Insider Shares Bought` is millions of shares of open-market purchases (see section 5). |
 
 ## 5. Column dictionary
 
@@ -60,7 +60,7 @@ What the monthly Fidelity stock screener download contains, how to read it, and 
 | Earnings Yield (TTM) | Trailing EPS / price, % | 67 / 95 | |
 | Total Cash | Cash and equivalents, $M | 73 / 98 | One point in time |
 | Revenue (TTM) | Trailing revenue, $M | 75 / 100 | |
-| Jefferson Research | Jefferson Research rating: Buy, Hold, Sell, `--` | 100 / 100 | Overall rating, not the quality grades; filled for only 29% of stocks |
+| Jefferson Research | Jefferson Research rating: Buy, Hold, Sell, `--` | 100 / 100 | Overall rating, not the quality grades; filled for 29% of all stocks and 58% of CCC names; one of the votes in the criterion 15 rating agreement (`ideas_v2.md` "Quality composite") |
 | Price/Book Ratio | Price / book value, x | 71 / 95 | Blank for some names (MCD, PG, JNJ); reason not stated, negative equity is one cause |
 | Price/Sales Ratio | x | 70 / 99 | |
 | Price/Cash Flow Ratio | x | 67 / 97 | |
@@ -78,7 +78,7 @@ What the monthly Fidelity stock screener download contains, how to read it, and 
 | Debt to Capital Ratio (Most Recent Qtr) | Debt / (debt + equity), % | 74 / 99 | Criterion 1 |
 | Interest Coverage (Most Recent Qtr) | Earnings / interest expense, x | 55 / 74 | Criterion 1 |
 | % Revenue to RD (Last FY) | R&D as % of revenue | 29 / 42 | Informational |
-| Net Insider Shares Bought | Insider buying, units and period unverified | 62 / 97 | Never negative, so it cannot show net selling; criterion 12 only partly covered |
+| Net Insider Shares Bought | Open-market insider purchases, millions of shares (MO 0.0015 = 1,500 shares, TFC 0.021 = 21,000, both equal to Finnhub's purchase-code shares) | 62 / 97 | Despite the name it is never negative and has no sells (0 for KO, JNJ, PG, O where Finnhub shows no purchases); period unknown and some names differ from Finnhub's 6-month figure. Good as a pre-filter for "any buying"; criterion 12 itself uses Finnhub |
 | Revenue Growth (5 Yrs / 3 Yrs / TTM vs. Prior TTM) | Revenue growth, % | 75 / 100 each (TTM 70 / 99) | 5-yr is the R term of ACN |
 | Cash Flow Growth Rate (3 Yr / 5 Yr / TTM vs. Prior TTM) | Operating cash flow growth | 74 to 75 / 100 | TTM unit differs, see section 4. Cash flow, not cash balance (criterion 11 partial) |
 | EPS Growth (3 Year History / 5 Year Historical) | Historical EPS growth, % | 63 / 93; 59 / 90 | 5-yr is the E term of ACN; annualised vs point-to-point is unchecked |
@@ -118,7 +118,7 @@ What the monthly Fidelity stock screener download contains, how to read it, and 
 ### Valuation, Growth & Ownership
 | Column | Meaning | Fill | Notes |
 |---|---|---|---|
-| S&P Global Market Intelligence Valuation / Quality / Growth Stability / Financial Health | Scores 0 to 100, apparently percentile ranks | 66 to 69 / 96 to 100 | **Direction and scale unverified.** Spot values: JNJ Quality 89 and Financial Health 91, KO 45 and 26, PG 74 and 48, NEE Quality 31. Criterion 1 candidates once calibrated on known tickers |
+| S&P Global Market Intelligence Valuation / Quality / Growth Stability / Financial Health | Scores 0 to 100 | 66 to 69 / 96 to 100 | **Checked 2026-10-25: weak.** Against approximate S&P issuer ratings for 56 tickers (ratings from memory) the Spearman correlation was Financial Health -0.01, Quality 0.20, Valuation 0.24, Growth Stability 0.06. Financial Health does not track credit quality, so it is informational only and not scored for criterion 1. Spot values: JNJ Quality 89 and Financial Health 91, KO 45 and 26, NEE Quality 31 |
 | P/E (Price/TTM Earnings) | x, stored as text | 100 / 100 | `--` when negative or missing |
 | PEG Ratio | x | 27 / 53 | Sparse |
 | EPS Growth (Proj This Yr vs. Last Yr) | %, duplicate of Search Criteria | 64 / 95 | |
@@ -130,7 +130,7 @@ What the monthly Fidelity stock screener download contains, how to read it, and 
 |---|---|---|---|
 | Equity Summary Score (ESS) from LSEG StarMine | Very Bearish, Bearish, Neutral, Bullish, Very Bullish | 47 / 92 | Criterion 13. Counts: Neutral 463, Bearish 352, Bullish 311, Very Bearish 118, Very Bullish 111. Not the 0 to 10 StarMine scale in the original notes |
 | Equity Summary Score Change (1 Month) | Stable, Moderate or Large Increase or Decrease | 47 / 92 | |
-| LSEG I/B/E/S Estimates | Mean analyst recommendation, 1.5 to 3.1 in the middle 90% | 68 / 96 | Scale direction unverified (1 is probably strong buy; O is 2.68 with a Very Bearish ESS) |
+| LSEG I/B/E/S Estimates | Mean analyst recommendation, 1.5 to 3.1 in the middle 90% | 68 / 96 | **1 = strong buy, 5 = sell** (Spearman 0.95 against yfinance's recommendationMean on 20 tickers). Independent of the StarMine ESS: mean 2.3 to 2.4 at every ESS level |
 | MSCI Overall ESG Rating, Environmental, Social, Governance | Leader, Average, Laggard | 47 / 88 to 90 | Governance is a weak stand-in for Morningstar Stewardship (criterion 2); informational |
 
 ## 6. Spot values for calibration (October snapshot)
@@ -141,10 +141,18 @@ What the monthly Fidelity stock screener download contains, how to read it, and 
 | PG | 2.70 | 4.59 | 55.9 | Neutral | 74 | 48 | 38.8 | 27.1 |
 | O | 5.71 | 2.77 | 220.0 | Very Bearish | 53 | 26 | 44.1 | 2.2 |
 
-## 7. Open checks
-1. Why XOM (and CABO, TGLS) are missing, and whether the same happens in other months. Compare the DRIP CCC list with the screener after every merge.
-2. Definition of Net Insider Shares Bought (period, units, sells).
-3. Direction and scale of the four S&P scores and of the I/B/E/S estimate.
-4. Whether Fidelity's 5-yr EPS and revenue growth are annualised or point-to-point, versus Finnhub CAGRs on a sample.
-5. Unit of Cash Flow Growth (TTM vs. Prior TTM).
-6. Whether the stocks with a blank for a given field are consistently the same ones (banks, REITs, small caps) so that "unknown" can be handled by sector.
+## 7. Checks done 2026-10-25 and what is still open
+Done:
+1. **Growth rates.** Fidelity's EPS and revenue 5-year growth equal Finnhub's own `epsGrowth5Y` / `revenueGrowth5Y` and a point-to-point CAGR of Finnhub's annual EPS (median gap 0.0 on 18 and 20 tickers; JNJ 14.9, KO 11.2, MSFT 17.4). Dividend growth differs by a median 0.7 points (different windows). So the screener's growth figures are point-to-point CAGRs, the rule already adopted, and can feed the ACN E and R terms directly. Finnhub gives no EPS growth for CVX and T.
+2. **Net Insider Shares Bought:** open-market buys only, millions of shares (section 5). Finnhub's transaction codes (P purchase, S sale, A grant, M exercise, F tax withholding, G gift) are better for criterion 12; yfinance gives free text without codes and about half the rows (NWBI 20 vs 36, ABR 10 vs 30).
+3. **I/B/E/S scale:** 1 is strong buy (section 5).
+4. **S&P scores:** do not track credit ratings (section 5).
+5. **Cash flow growth TTM unit:** a fraction (section 4).
+6. **Small caps (10 smallest US CCC names, $65M to $190M):** yfinance covers them well (8 to 10 of 10 key info fields, dividend history back to 1987 to 2018, 4 to 5 years of statements) but has 0 to 3 analysts. Finnhub has 14 to 41 years of ROE and P/E, but no annual EPS for the banks (HFBL, UBCP, PBHC, BOTJ, EBMT, SBFG), so EDGAR is needed for small banks as well as large ones. Screener StarMine ESS is filled for 7% of US stocks under $300M, 72% from $300M to $2B and 94% above $2B, so criterion 13 is mostly unknown for micro caps.
+7. **ESS vs the revision proxy:** weakly related (Spearman 0.25 with the 90-day estimate change, 0.28 with Finnhub's recommendation score, -0.52 with price-target upside on 20 tickers), so they are separate signals and keep both.
+8. **XOM, CABO, TGLS missing:** no variant of the name exists in the file, so the cause is not visible from the data (XOM's yield lies inside a band). The pipeline must not depend on a stock being in the screener: the other criteria still come from yfinance and Finnhub.
+
+Still open:
+- Why Fidelity omitted those three, and whether it recurs next month (compare the DRIP CCC list with the screener after each merge).
+- Period covered by Net Insider Shares Bought.
+- Direction and scale of the ESS Change column beyond its labels.
