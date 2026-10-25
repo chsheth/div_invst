@@ -58,6 +58,9 @@ uv run --python 3.13 scripts/build_dataset.py
 ```
 Joins DRIP, the screener, Morningstar and Argus into one row per ticker and writes `data/dataset/<YYYY-MM>.csv` (columns prefixed `drip_`, `scr_`, `ms_`, `argus_`; percent fields are fractions). It prints the join summary: tickers per source, Morningstar and Argus names missing from the screener, CCC names missing from the screener (October: CABO, TGLS, XOM) and how complete the key fields are for CCC names. Look at the missing-CCC list each month.
 
+## 4b. Run the screen
+`uv run --python 3.13 scripts/run_screen.py` writes `data/reports/<YYYY-MM>/top50.md` and `top50.csv`. Macro inputs (S&P yield, 10-yr Treasury, inflation) are in `config/criteria.toml`; refresh them monthly until the data layer does.
+
 ## 5. Follow-up
 - Update the folder's own `README.md` if a file's source or format changed.
 

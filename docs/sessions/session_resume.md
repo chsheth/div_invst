@@ -73,8 +73,11 @@ Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs
 - Git: last commit is `ff88cd9` on `main` (not pushed); the session 6 work (reference package, screener merge, check script, guide, docs) is uncommitted. `.env`, `data/` and `docs/reference/` are ignored.
 
 ## Next steps (ordered)
-1. Slice 1 (see `../plan/PLAN.md` "Build phases"): the combined dataset is built (`scripts/build_dataset.py`); next is the criteria engine skeleton with `config.toml`, screener-based criteria and the quality composite, ranked top 50 report.
+1. Slice 1 (see `../plan/PLAN.md` "Build phases"): dataset and criteria engine are built (`scripts/run_screen.py` writes `data/reports/<month>/top50.md`); next is calibrating the quality composite on known tickers, then deciding the StarMine double count (13 and 15) and the ranking tie rule.
 2. Slice 2: data layer + SQLite cache (yfinance, Finnhub, EDGAR, FRED) with run snapshots.
 3. Slice 3: remaining criteria (Financial Strength proxy, fair value, earnings history, insider, revision proxy as second signal, REIT FFO proxy).
 4. Slice 4: holdings loader (when the user has the file), diversification cut, exit report.
 5. Tests and CLI. Each month: follow `../guides/monthly_drop.md`.
+
+## Session 6 (continued)
+Criteria engine built (9 criteria, ranking, report, tests); code review fixes applied (negative P/B, Morningstar None, bank interest coverage). Open: calibration, StarMine double count, ranking tie rule.

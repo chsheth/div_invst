@@ -9,7 +9,7 @@ criteria, and produces:
 Focus is on dividend Aristocrats, Champions and Contenders, but all US dividend payers are screened.
 
 ## Status
-Planning, the data coverage spike, the revision data spike and the monthly reference loaders (CCC, Morningstar, Argus) are complete, and the default thresholds are settled; the application itself is not built yet. See `docs/sessions/session_resume.md` for the current state and next steps.
+Planning, the data coverage spike, the revision data spike and the monthly reference loaders (CCC, Morningstar, Argus) are complete, and the default thresholds are settled; the combined dataset and the first criteria engine (9 of 15 criteria, top-50 report) are built; data layer, remaining criteria and holdings/exit are not. See `docs/sessions/session_resume.md` for the current state and next steps.
 
 ## Documents
 | File | Purpose |
@@ -57,6 +57,8 @@ Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.cs
 uv run --python 3.13 scripts/merge_screener.py                  # Fidelity screener yield-band .xls files -> screener_results.xlsx
 uv run --python 3.13 scripts/check_month.py                     # check the month folder: files present and loading
 uv run --python 3.13 scripts/build_dataset.py                   # combined per-ticker dataset -> data/dataset/<YYYY-MM>.csv
+uv run --python 3.13 scripts/run_screen.py                     # criteria over the dataset -> data/reports/<YYYY-MM>/top50.md
+uv run python -m unittest discover -s tests                    # unit tests
 uv run --python 3.13 scripts/coverage_spike.py                  # data coverage report -> data/spike_out/report.md
 uv run --python 3.13 scripts/finnhub_vs_edgar.py --tickers JNJ,KO   # Finnhub vs EDGAR spot-check
 uv run --python 3.13 scripts/revision_spike.py                  # analyst revision data coverage -> data/revision_out/report.md

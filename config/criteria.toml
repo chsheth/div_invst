@@ -1,0 +1,45 @@
+# Thresholds and macro inputs for the screening criteria (docs/criteria/ideas_v2.md). Percent values are fractions.
+# Edit here, not in code. Macro values are refreshed by hand until the data layer pulls FRED and SPY.
+
+[macro]
+as_of = "2026-10-22"
+sp_yield = 0.010          # S&P 500 dividend yield; Argus Top 30 issue, October 2026 (replace with SPY yield from yfinance)
+treasury_10y = 0.0496     # FRED DGS10, 2026-10-22
+inflation = 0.0372        # FRED CPIAUCSL year over year, September 2026
+
+[yield]                   # criterion 4
+min_multiple = 1.5        # yield / S&P yield
+max_multiple = 2.5        # above this still passes, flagged "yield trap?"
+
+[chowder]                 # criteria 5 and 6
+min_yield_vs_sp = 0.5     # yield >= 50% of the S&P yield
+tier_default = 0.12       # most stocks with yield >= 3%
+tier_low_yield = 0.15     # yield below 3% (tech and growth)
+tier_utility_telecom = 0.08
+low_yield_cutoff = 0.03
+acn_yield_cap = 0.10
+acn_growth_cap = 0.30
+acn_min_terms = 2         # of D, E, R that must be available
+
+[valuation]               # criterion 9
+max_ps = 1.5
+max_pb = 3.0
+min_cash_to_market_cap = 0.05
+min_subtests = 3          # evaluable sub-tests needed for a pass
+
+[quality]                 # criteria 2, 3, 15
+pass_score = 65           # criterion 3 composite score
+min_subscores = 3         # of 4
+governance_pass = ["Leader", "Average"]
+agreement_min_sources = 3
+agreement_pass = 0.25
+ibes_buy_at_most = 2.0
+ibes_sell_at_least = 3.0
+
+[starmine]                # criterion 13
+pass_levels = ["Bullish", "Very Bullish"]
+neutral_pass_if_change = ["Moderate Increase", "Large Increase"]
+
+[ranking]
+min_coverage = 0.70       # evaluated criteria / applicable implemented criteria
+top_n = 50
