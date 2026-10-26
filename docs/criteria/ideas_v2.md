@@ -18,7 +18,14 @@ matches outside the CCC lists are not missed.
 
 ## Criteria
 Each criterion: pass / fail / unknown. All are equal-weighted pass/fail filters (weights configurable later).
-Stocks are ranked on available data; coverage count is shown; below ~70% coverage a stock is not ranked. Ties are broken by ACN (criterion 6), highest first.
+Stocks are ranked on available data; coverage count is shown; below ~70% coverage a stock is not ranked. Rank key is passes / applicable criteria (unknowns count as not passed, so few evaluated criteria cannot beat many); the report still shows passes / evaluated as the score. Ties are broken by ACN (criterion 6), highest first, then yield, then ticker.
+
+How the screen ranks:
+1. Each criterion returns pass, fail, unknown or n/a per ticker. There is no overall pass/fail for a ticker.
+2. A ticker is eligible only with a yield, US scope and coverage >= 70% (coverage = evaluated / applicable; applicable = everything except n/a). A ticker with all passes but too many unknowns is not ranked (345 of 1,679 on 2026-10-25), nor is one below the top 50.
+3. Eligible tickers sort by passes / applicable, ties by ACN, yield, ticker; the top 50 are kept.
+The applicable count differs per ticker (n/a for sector skips, unknown for missing data). With 9 criteria implemented and criterion 14 n/a without holdings, the report shows 8 applicable; Slice 3 raises this to about 14, which will lower coverage for thin-data names, so revisit the 70% cutoff then.
+
 Criteria come from the original notes (v1 criteria 1-8) and the SBI list; overlapping items are merged into one row.
 
 | # | Criterion | Threshold | Planned free data source | Feasibility |
@@ -62,7 +69,7 @@ A collective, proxy-labelled quality view built from the Fidelity screener (adde
   - Operating efficiency (680): SG&A / net sales (20% or less 100, up to 35 60, above 20; skipped for financials, REITs, utilities); 5-year operating margin (15% or more 100, 8-15 60, below 8 20); return on investment (10% or more 100, 5-10 60, below 5 20).
   - Valuation risk, the fifth Jefferson grade, is covered by criteria 8 and 9 and not repeated here. Balance sheet overlaps the criterion 1 proxy by design.
   - The S&P Quality and Financial Health scores are not used (no relation to credit ratings, checked 2026-10-25).
-- **Criterion 15, rating agreement (628 of 681 have at least 3 sources):** each available third-party rating votes positive, neutral or negative: Jefferson Research (Buy / Hold / Sell, 58% of CCC names), Zacks (Outperform / Neutral / Underperform, 93%), McLean (Buy / Neutral / Sell, 89%), Argus Analyst Opinions (Buy / Hold, 33%), StarMine ESS (Bullish or better positive, Bearish or worse negative, 92%), I/B/E/S mean (2.0 or lower positive, 3.0 or higher negative, 96%), plus the Morningstar star rating for pick-list names (4-5 positive, 1-2 negative). Agreement score = (positives - negatives) / sources available. Pass: at least 3 sources and a score of 0.25 or more. Ford is not available, so this replaces the Jefferson-and-Ford check with a wider panel; the manual yes/no override stays. Trading Central is a technical signal and is not used.
+- **Criterion 15, rating agreement (628 of 681 have at least 3 sources):** each available third-party rating votes positive, neutral or negative: Jefferson Research (Buy / Hold / Sell, 58% of CCC names), Zacks (Outperform / Neutral / Underperform, 93%), McLean (Buy / Neutral / Sell, 89%), Argus Analyst Opinions (Buy / Hold, 33%), I/B/E/S mean (2.0 or lower positive, 3.0 or higher negative, 96%), plus the Morningstar star rating for pick-list names (4-5 positive, 1-2 negative). Agreement score = (positives - negatives) / sources available. Pass: at least 3 sources and a score of 0.25 or more. Ford is not available, so this replaces the Jefferson-and-Ford check with a wider panel; the manual yes/no override stays. Trading Central is a technical signal and is not used.
 
 ### Monthly reference inputs
 Dropped by hand into `docs/reference/<YYYY-MM>/` (gitignored; loaders in `src/div_invst/reference/` read the newest folder, falling back to the latest earlier month and marking data stale):
@@ -166,3 +173,5 @@ Data-source questions raised on 2026-10-18 are listed in `../research/data_sourc
 - Open spike items: REIT FFO proxy (decided 2026-10-25, to build and validate against reported FFO for O and PLD). Small-cap coverage tested 2026-10-25 (see `../research/fidelity_screener.md` section 7). The Dividend Vision streak cross-check is done (2026-10-22): 16 DRIP/Dividend Vision conflicts remain, settled conservatively and worth a manual look.
 - Fidelity screener: why XOM, CABO and TGLS are missing; the period covered by Net Insider Shares Bought; units of cash, FCF and debt/equity (cash and FCF look like $ millions).
 - Quality composite thresholds (criteria 2, 3, 15) are defaults to calibrate on known tickers once the loader exists.
+- 2026-10-26: StarMine double count settled: ESS counts only in criterion 13; it is removed from the criterion 15 rating panel (Jefferson, Zacks, McLean, Argus, I/B/E/S, Morningstar), which keeps the minimum of 3 sources. Ranking key changed from passes / evaluated to passes / applicable (ties: ACN, yield, ticker), fixing the bias toward tickers with fewer evaluated criteria; the 70% minimum coverage stays.
+- 2026-10-26 (note): ESS stands in for the Fidelity StarMine 0-10 score of the original criterion 13, which is why it was dropped from 15. I/B/E/S stays in 15 but is also LSEG data and StarMine models use analyst estimates, so some overlap remains; drop it from 15 if a stricter split is wanted.

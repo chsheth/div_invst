@@ -82,3 +82,5 @@ Resolved 2026-10-21: all thresholds, one-off EPS handling, 15% exit margin, ADRs
 ## Session 6 (continued)
 Criteria engine built (9 criteria, ranking, report, tests); code review fixes applied (negative P/B, Morningstar None, bank interest coverage). Open: calibration, StarMine double count, ranking tie rule.
 Calibration 2026-10-25: composite pass cutoff 65 -> 70, debt/capital skipped for financials. Still open: ACN is inflated for cyclical growers (energy, REITs with 30% growth).
+Decided 2026-10-26: StarMine ESS only in criterion 13 (removed from 15's panel); rank key = passes / applicable, ties by ACN, yield, ticker. ACN growth capped at 15% (commit 7425882). Slice 1 is closed; next is Slice 2 (data layer + SQLite cache).
+Revisit at Slice 3: the 70% minimum coverage (applicable criteria rise from 8 to about 14) and whether I/B/E/S should also leave criterion 15 (LSEG overlap with ESS).

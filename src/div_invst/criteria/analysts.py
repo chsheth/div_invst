@@ -13,7 +13,7 @@ def starmine(rec, cfg, ctx):
 
 
 def _votes(rec: dict, cfg: dict) -> dict:
-    """+1 / 0 / -1 per available third-party rating."""
+    """+1 / 0 / -1 per available third-party rating. StarMine ESS is left out: criterion 13 already uses it."""
     q = cfg["quality"]
     votes = {}
     table = {"jefferson": {"Buy": 1, "Hold": 0, "Sell": -1}, "zacks": {"OUTPERFORM": 1, "NEUTRAL": 0, "UNDERPERFORM": -1},
@@ -22,9 +22,6 @@ def _votes(rec: dict, cfg: dict) -> dict:
         v = src(rec, "screener", field)
         if v in mapping:
             votes[field] = mapping[v]
-    ess = src(rec, "screener", "ess")
-    if ess:
-        votes["ess"] = 1 if ess in ("Bullish", "Very Bullish") else -1 if ess in ("Bearish", "Very Bearish") else 0
     ibes = src(rec, "screener", "ibes_mean")
     if ibes is not None:
         votes["ibes"] = 1 if ibes <= q["ibes_buy_at_most"] else -1 if ibes >= q["ibes_sell_at_least"] else 0

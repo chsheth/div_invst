@@ -68,7 +68,7 @@ Per holding: current price, target sell price, % upside, trigger(s) fired.
 | 12 | Insider buying | yfinance or Finnhub insider transactions; screener Net Insider Shares Bought shows buys only | High |
 | 13 | StarMine 7+ | Screener StarMine Equity Summary Score (primary); revision proxy 0-10, pass at 7+ (yfinance eps_trend, eps_revisions, upgrades_downgrades, price targets; Finnhub recommendations) as second signal | Medium/High |
 | 14 | Diversification | Sector from yfinance vs holdings | High |
-| 15 | Accuracy calls | Rating agreement across Jefferson, Zacks, McLean, Argus, StarMine, I/B/E/S (no Ford); manual override | Low-Medium |
+| 15 | Accuracy calls | Rating agreement across Jefferson, Zacks, McLean, Argus, I/B/E/S, Morningstar (no Ford, no StarMine: it is criterion 13); manual override | Low-Medium |
 
 Spike findings: `docs/research/data_sources.md` (2026-10-18, 4 tickers) and `docs/research/coverage_spike_2026-10-19.md` (21 tickers; supersedes where they differ).
 
@@ -108,7 +108,7 @@ Build in vertical slices, so a ranked list exists early and heavier criteria are
 2. **Slice 1: screener-based entry list (no network).**
    - **Done 2026-10-25:** `reference/screener.py` (loader) and `reference/dataset.py` + `scripts/build_dataset.py` (combined per-ticker dataset of DRIP, screener, Morningstar and Argus, with a `us_scope` flag).
    - **Done 2026-10-25:** criteria engine (`src/div_invst/criteria/`, thresholds and macro inputs in `config/criteria.toml`), criteria 2, 3, 4, 5, 6, 9 (P/E-history sub-test pending), 13, 14 (n/a without holdings), 15, coverage-aware ranking, `scripts/run_screen.py` -> `data/reports/<month>/top50.{csv,md}`, unit tests in `tests/`. S&P yield, Treasury and inflation in the config are manual until Slice 2.
-   - **Open:** calibrate composite thresholds on known tickers (energy and banks dominate the first top 50); decide whether StarMine should count in both 13 and 15; ranking favours tickers with fewer evaluated criteria.
+   - **Open:** calibrate composite thresholds on known tickers (energy and banks dominate the first top 50); **Decided 2026-10-26:** StarMine ESS counts in 13 only (dropped from the 15 panel); rank key is passes / applicable, ties by ACN, yield, ticker.
 3. **Slice 2: data layer + SQLite cache.** yfinance (prices, dividends, insider, revision snapshots stored daily, 5-yr average yield), Finnhub (annual series, insider transactions with codes), EDGAR (CIK overrides, tag chains, split adjustment, bank path, REIT FFO proxy), FRED (10-yr Treasury, CPI). Run snapshots from day one. Refresh cadence per `data_sources.md` section 4.
 4. **Slice 3: remaining criteria.** 1 (Financial Strength proxy), 7 (earnings 7 of 10, non-CCC streak), 8 fair value (DDM and PE-vs-historical-PE, lower), 10, 11, 12 (Finnhub codes), revision proxy as second signal for 13, exit-rule inputs.
 5. **Slice 4: holdings and exit.** Holdings loader (xlsx/csv, layout from the user), diversification cut, exit report (fair-value ceiling, yield compression using yfinance 5-yr average yield, fundamental break, Morningstar "deleted" shown as a note).

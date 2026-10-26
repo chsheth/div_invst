@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from div_invst.criteria import FAIL, NA, PASS, UNKNOWN, evaluate, load_config  # noqa: E402
+from div_invst.criteria import FAIL, NA, PASS, UNKNOWN, evaluate, load_config, rank  # noqa: E402
 
 CFG = load_config()
 
@@ -34,6 +34,18 @@ class CriteriaTest(unittest.TestCase):
         self.assertEqual(evaluate(rec(ess="Neutral", ess_change="Large Increase"), CFG)[13].status, PASS)
         self.assertEqual(evaluate(rec(ess="Neutral", ess_change="Unchanged"), CFG)[13].status, FAIL)
         self.assertEqual(evaluate(rec(), CFG)[14].status, NA)
+
+    def test_agreement_ignores_starmine(self):
+        r = evaluate(rec(ess="Very Bullish", zacks="OUTPERFORM", mclean="Buy"), CFG)[15]
+        self.assertEqual(r.status, UNKNOWN)
+
+    def test_rank_penalises_missing_criteria(self):
+        def row(t, passes, acn=0.1):
+            # 9 applicable criteria for everyone; FEW evaluated only 3 of them but passed all 3
+            return {"ticker": t, "passes": passes, "applicable": 9, "evaluated": 9, "coverage": 1.0, "score": 1.0,
+                    "rank_score": passes / 9, "acn": acn, "yield": 0.03}
+        rows = [row("FEW", 3), row("MANY", 8), row("TIE", 8, acn=0.2)]
+        self.assertEqual([x["ticker"] for x in rank(rows, CFG)], ["TIE", "MANY", "FEW"])
 
 
 if __name__ == "__main__":
