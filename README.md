@@ -9,20 +9,7 @@ criteria, and produces:
 Focus is on dividend Aristocrats, Champions and Contenders, but all US dividend payers are screened.
 
 ## Status
-Planning, the data coverage spike, the revision data spike and the monthly reference loaders (CCC, Morningstar, Argus) are complete, and the default thresholds are settled; the combined dataset and the first criteria engine (9 of 15 criteria, top-50 report) are built; data layer, remaining criteria and holdings/exit are not. See `docs/sessions/session_resume.md` for the current state and next steps.
-
-## Documents
-| File | Purpose |
-|------|---------|
-| `docs/criteria/ideas_v1.md` | Original notes |
-| `docs/criteria/ideas_v2.md` | Structured criteria, exit rules, decisions log (source of truth) |
-| `docs/research/data_sources.md` | Data source research: which sources work programmatically, element-to-source map |
-| `docs/research/coverage_spike_2026-10-19.md` | Coverage spike results on 21 tickers: source verdicts, EDGAR tag chains, Finnhub vs EDGAR checks |
-| `docs/research/revision_spike_2026-10-21.md` | Analyst revision data coverage for the StarMine-style proxy (criterion 13) |
-| `docs/research/fidelity_screener.md` | Column-by-column reference for the monthly Fidelity screener download (layout, units, fill rates, open checks) |
-| `docs/guides/monthly_drop.md` | Step-by-step for the monthly reference drop: what to download, file names, commands, checks |
-| `docs/plan/PLAN.md` | Build plan, phases |
-| `docs/sessions/session_resume.md` | Session summaries, open questions, next steps (start here when resuming) |
+All 15 criteria are implemented and the top-50 report runs; the data layer (SQLite cache over yfinance, Finnhub, EDGAR and FRED) is built and its first full fetch is in progress. Not built: the holdings loader and exit report (waiting for a holdings file), the CLI, and the Aristocrat label. Current state and next steps: `docs/sessions/session_resume.md`. Documentation index and conventions: `docs/README.md`.
 
 ## Planned usage
 ```
@@ -39,7 +26,7 @@ uv run main.py --holdings holdings.csv  # entry list + exit report
 - Exit report: price, target sell price, % upside, trigger(s) fired.
 
 ## Data
-Free sources first: yfinance, Finnhub (free tier), SEC EDGAR, FRED. The CCC universe comes from the monthly DRIP "All CCC" export (tier gives a streak band; Dividend Vision was dropped because its terms prohibit automated extraction); yfinance-computed streaks for non-CCC stocks are a screen only. FMP and Alpha Vantage were tested and dropped. See `docs/research/coverage_spike_2026-10-19.md` and `docs/plan/PLAN.md`.
+Free sources first: yfinance, Finnhub (free tier), SEC EDGAR, FRED. The CCC universe, the Fidelity screener, and the Morningstar and Argus PDFs are monthly manual drops. Dividend Vision was dropped (its terms prohibit automated extraction); FMP and Alpha Vantage were tested and dropped. What each source supplies and its status: `docs/research/data_sources.md`.
 
 ## Setup
 Python 3.12 or later (pinned to 3.13), managed with `uv`. Put keys in `.env` in the repo root (gitignored):
@@ -49,15 +36,16 @@ EDGAR_USER_AGENT=div-invst you@example.com
 ```
 (`FMP_API_KEY` and `ALPHAVANTAGE_API_KEY` are only read by the spike script.)
 
-## Monthly reference inputs
-Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored): `drip_ccc.csv` (DRIP "All CCC" email export), `screener_results.xlsx` (Fidelity screener yield bands, merged by `scripts/merge_screener.py`), Morningstar large and mid cap pick list PDFs, Argus Top 30 PDF, optional `ratings.csv`. Step-by-step: `docs/guides/monthly_drop.md`. Details: `docs/criteria/ideas_v2.md`.
+## Monthly routine
+Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored), refresh the cache, run the screen. Step by step: `docs/guides/monthly_drop.md`.
 
 ## Scripts
 ```
 uv run --python 3.13 scripts/merge_screener.py                  # Fidelity screener yield-band .xls files -> screener_results.xlsx
 uv run --python 3.13 scripts/check_month.py                     # check the month folder: files present and loading
 uv run --python 3.13 scripts/build_dataset.py                   # combined per-ticker dataset -> data/dataset/<YYYY-MM>.csv
-uv run --python 3.13 scripts/run_screen.py                     # criteria over the dataset -> data/reports/<YYYY-MM>/top50.md
+uv run --python 3.13 scripts/refresh_data.py                    # fill/refresh the SQLite cache (yfinance, Finnhub, EDGAR, FRED) -> data/cache/
+uv run --python 3.13 scripts/run_screen.py                      # criteria over the dataset -> data/reports/<YYYY-MM>/top50.md
 uv run python -m unittest discover -s tests                    # unit tests
 uv run --python 3.13 scripts/coverage_spike.py                  # data coverage report -> data/spike_out/report.md
 uv run --python 3.13 scripts/finnhub_vs_edgar.py --tickers JNJ,KO   # Finnhub vs EDGAR spot-check
