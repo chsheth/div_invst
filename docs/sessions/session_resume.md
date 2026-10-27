@@ -22,10 +22,11 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 5. **Aristocrat label:** needs an S&P 500 constituent list (not in our data). Plan: fetch it automatically (the Wikipedia "List of S&P 500 companies" table through the MediaWiki API, with a User-Agent) with a manual `sp500.csv` override; Aristocrat = S&P 500 and band Champion or King. User chose to look for an automatic source; nothing is built.
 6. **Backtest:** asked how, deferred. The monthly vendor files exist only for 2026-10, so the options are a forward test from now (store each month's list and score later returns) or a historical rebuild from free sources for the reconstructable criteria only. Scope and metrics unanswered.
 7. **Holdings file:** the user has none, so criterion 14 and the exit report (Slice 4) wait.
-8. **Smaller items:** banks and insurers for criterion 1 (unknown now); Altman Z (dropped); SPY yield to replace the manual S&P yield; quality composite thresholds are defaults to keep calibrating; the Fidelity open checks in `../research/fidelity_screener.md` section 7; why XOM, CABO and TGLS are missing from the screener.
+8. **Equity units and odd tickers:** NEE/PS, NEE/PT, NEE/PV (NEE equity units) get NEE common-stock EDGAR data under their own ticker, which would mislead EPS-based criteria; consider excluding preferred and unit tickers from the universe. BRK.B pays no dividend.
+9. **Smaller items:** banks and insurers for criterion 1 (unknown now); Altman Z (dropped); SPY yield to replace the manual S&P yield; quality composite thresholds are defaults to keep calibrating; the Fidelity open checks in `../research/fidelity_screener.md` section 7; why XOM, CABO and TGLS are missing from the screener.
 
 ## Next steps (ordered)
-1. Let both fetches finish; rerun `refresh_data.py` (and `--kinds edgar,yf_splits` if EDGAR is incomplete) until it reports nothing left to fetch.
+1. Let both fetches finish (the class-share ticker fix is in the code; Finnhub for those 23 comes with the next rerun); rerun `refresh_data.py` (and `--kinds edgar,yf_splits` if EDGAR is incomplete) until it reports nothing left to fetch.
 2. Run `scripts/run_screen.py`; recheck coverage and the top 50; decide open items 1 to 4 from what it shows.
 3. Commit the pool fix and the doc reorganisation.
 4. Pick up an open item: the Aristocrat label, the backtest scope, banks for criterion 1, or SPY yield.
