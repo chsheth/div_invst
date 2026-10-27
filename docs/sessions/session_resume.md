@@ -10,9 +10,10 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 
 ## State
 - All 15 criteria are implemented (14 is na without holdings); 30 unit tests pass. Criteria 1, 7, 8, 10, 11, 12 and the revision proxy read the SQLite cache, so they are unknown until a ticker's data is cached.
-- Last commit `b1bc8c7` on `main` (not pushed). Uncommitted: `scripts/refresh_data.py` and `Store.tickers()` (pool fix), the markdown reorganisation.
-- Two background fetches were running at 2026-10-26: the main `scripts/refresh_data.py` run (yfinance done for 1,331 to 1,334 tickers; Finnhub `fh_metric` about 770 of 1,334, then `fh_insider`) and `refresh_data.py --kinds edgar,yf_splits` (EDGAR about 385 of about 1,334, then splits). Check with `uv run python` against `data/cache/div_invst.sqlite` (count distinct tickers per kind), or just rerun the script: it only fetches what is stale.
-- Interim screen (cache partly filled): 642 rankable tickers; this number will move as the cache fills.
+- Last commit `1daa42d` on `main`, pushed.
+- First full fetch finished 2026-10-26: 1,354 tickers cached; 6 EDGAR errors remain (BSRT, OZK, PFBC 404; GAMI, HIFS, TOWN not in the SEC ticker map).
+- Uncommitted: this file (state and next steps updated 2026-10-26, end of session 7).
+- First full screen (2026-10-26): 1,679 screened, 1,333 with enough coverage to rank; top 50 are 8 to 11 of 13-14 applicable. Yield traps no longer dominate: IIPR (14.0%, #11), KRP (#14), INSW (18.2%, #37) and VRTS (#39) are the only 8%+ yields in the top 50.
 
 ## Open items
 1. **Criterion 8 yield-trap guard (deferred):** of 197 DDM passes, 57 yield 10% or more (mortgage REITs, BDCs, NHTC at 45%). Decide after the full ranking whether to skip the dividend estimate above about 12% yield or a payout above 100%.
@@ -26,8 +27,8 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 9. **Smaller items:** banks and insurers for criterion 1 (unknown now); Altman Z (dropped); SPY yield to replace the manual S&P yield; quality composite thresholds are defaults to keep calibrating; the Fidelity open checks in `../research/fidelity_screener.md` section 7; why XOM, CABO and TGLS are missing from the screener.
 
 ## Next steps (ordered)
-1. Let both fetches finish (the class-share ticker fix is in the code; Finnhub for those 23 comes with the next rerun); rerun `refresh_data.py` (and `--kinds edgar,yf_splits` if EDGAR is incomplete) until it reports nothing left to fetch.
-2. Run `scripts/run_screen.py`; recheck coverage and the top 50; decide open items 1 to 4 from what it shows.
-3. Commit the pool fix and the doc reorganisation.
+1. **Start here:** look at why IIPR (14% yield) ranks #11 (10/14 passes; it passes criterion 8 and fails 9, 11, 13, 15), then decide open item 1 (the criterion 8 yield-trap guard) from that. The top 50 holds only 4 yields of 8% or more, so the guard looks lower priority.
+2. Investigate the 6 EDGAR errors (BSRT, OZK, PFBC 404; GAMI, HIFS, TOWN not in the SEC ticker map).
+3. Decide open items 2 to 4 from the first full ranking (criterion 7 calibration, the 70% coverage cutoff, I/B/E/S in 15). Criteria 9 and 12 fail for most of the list and criterion 8 passes for few; check they are not too strict.
 4. Pick up an open item: the Aristocrat label, the backtest scope, banks for criterion 1, or SPY yield.
 5. Slice 4 when the holdings file exists; then the CLI and fixture tests (`../plan/PLAN.md`).
