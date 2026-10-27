@@ -97,6 +97,30 @@ def eps_history(metric: dict | None, edgar_data: dict | None, splits: list | Non
     return {"years": dict(sorted(years.items())), "source": source}
 
 
+# ---------------------------------------------------------------- fundamentals
+def annual_series(metric: dict | None, name: str) -> dict[int, float]:
+    """One Finnhub annual series as {fiscal_year: value}, oldest first."""
+    rows = ((metric or {}).get("series", {}).get("annual", {}).get(name) or [])
+    out = {edgar.fiscal_year(r["period"]): r["v"] for r in rows if r.get("v") is not None and r.get("period")}
+    return dict(sorted(out.items()))
+
+
+def fundamentals(metric: dict | None, info: dict, revisions: dict | None) -> dict | None:
+    """History for criteria 1 and 10: annual ROE, ROIC, P/E and FCF margin (Finnhub), latest EBITDA in dollars (Finnhub
+    reports millions), total debt and free cash flow (yfinance), and next-year consensus EPS growth (yfinance)."""
+    if not metric and not info and not revisions:
+        return None
+    ebitda = annual_series(metric, "ebitda")
+    nxt = {r["period"]: r for r in _rows((revisions or {}).get("earnings_estimate"))}.get("+1y") or {}
+    return {
+        "roe": annual_series(metric, "roe"), "roic": annual_series(metric, "roic"), "pe": annual_series(metric, "pe"),
+        "fcf_margin": annual_series(metric, "fcfMargin"),
+        "ebitda": list(ebitda.values())[-1] * 1e6 if ebitda else None,
+        "total_debt": info.get("totalDebt"), "free_cash_flow": info.get("freeCashflow"),
+        "eps_growth_next_year": nxt.get("growth"),
+    }
+
+
 # ---------------------------------------------------------------- insiders and revisions
 def insider_activity(transactions: list | None, today: date) -> dict | None:
     """Open-market activity (Finnhub codes P = purchase, S = sale) over the last INSIDER_DAYS."""
@@ -184,6 +208,7 @@ def read_ticker(store: Store, ticker: str, today: date | None = None) -> dict | 
         "insider": insider_activity(insiders, today),
         "revision": revision_metrics(revisions, price, info.get("recommendationMean"), today),
         "edgar": edgar_latest(edg),
+        "fundamentals": fundamentals(metric, info, revisions),
     }
 
 

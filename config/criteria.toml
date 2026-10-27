@@ -36,6 +36,32 @@ agreement_pass = 0.25
 ibes_buy_at_most = 2.0
 ibes_sell_at_least = 3.0
 
+[fair_value]              # criterion 8
+equity_premium = 0.035    # required return = 10-yr Treasury + this (3.5% chosen 2026-10-26: reasonable but exclusive)
+stage1_cap = 0.08         # DDM stage 1: the 5-yr dividend CAGR, capped here against one-off jumps, floored at 0
+stage1_years = 5
+terminal_growth = 0.04    # DDM stage 2, for good (about long-run economic growth)
+min_spread = 0.02         # DDM skipped when required return - terminal growth is below this
+eps_years = 3             # P/E method: median EPS of the last N fiscal years x median 10-yr P/E
+min_discount = 0.15       # pass when price is at least this far below the lower estimate
+
+[fundamentals]            # criterion 10
+min_pe_years = 5          # years of P/E history needed for the own-average test
+near_high = 0.90          # ROE or ROIC at this share of its 10-year high also counts as rising
+min_eps_growth = 0.03     # next-year consensus EPS growth floor; inflation applies when higher
+min_subtests = 2
+
+[strength]                # criterion 1: Financial Strength proxy (weights from ideas_v2.md, Altman Z dropped, re-weighted)
+pass_score = 65           # tier B or better
+min_components = 3
+max_debt_to_market_cap = 0.5
+min_interest_coverage = 3.0
+debt_ebitda_default = [3.0, 4.5]          # full / partial credit limits
+debt_ebitda_capital_heavy = [6.0, 7.5]    # utilities and REITs (REITs on net debt)
+max_payout = 0.60         # earnings or FCF based; REITs use [reit], utilities are exempt
+min_fcf_years = 4         # of the last 5
+weights = { debt_to_market_cap = 20, interest_coverage = 20, debt_to_ebitda = 15, payout = 20, fcf_positive_5y = 10, cash_growth = 5 }
+
 [reit]                    # criteria 1 and 3: payout is dividends paid / FFO proxy (validated 2026-10-26 on O and PLD)
 max_ffo_payout = 0.85     # O 76% and PLD 68% reported; the proxy carries about +/-10% error, so the margin is kept
 
