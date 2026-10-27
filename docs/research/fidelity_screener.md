@@ -1,6 +1,6 @@
 # Fidelity screener: reference
 
-What the monthly Fidelity stock screener download contains, how to read it, and what to watch for. Written from the 2026-10-25 download (7 yield bands, 2,883 stocks). Criteria mapping and decisions live in `../criteria/ideas_v2.md` ("Fidelity screener"); the monthly steps are in `../guides/monthly_drop.md`. Where a unit or meaning below is marked **unverified**, it is inferred from the values and has not been checked against Fidelity's field help.
+What the monthly Fidelity stock screener download contains, how to read it, and what to watch for. Written from the 2026-10-25 download (7 yield bands, 2,883 stocks). The mapping to criteria is section 8 below, the criteria and decisions are in `../criteria/ideas_v2.md` and `../criteria/decisions_log.md`; the monthly steps are in `../guides/monthly_drop.md`. Where a unit or meaning below is marked **unverified**, it is inferred from the values and has not been checked against Fidelity's field help.
 
 ## 1. How the file is produced
 - Fidelity caps an export at 500 rows, so the screen is downloaded as yield bands, each saved as `screener_results*.xls` in `docs/reference/<YYYY-MM>/`.
@@ -157,3 +157,24 @@ Still open:
 - Why Fidelity omitted those three, and whether it recurs next month (compare the DRIP CCC list with the screener after each merge).
 - Period covered by Net Insider Shares Bought.
 - Direction and scale of the ESS Change column beyond its labels.
+
+## 8. Mapping to criteria (decided 2026-10-25, updated 2026-10-26)
+Fill rates are all stocks / DRIP CCC names. What the screener adds per criterion and how it is used; the criteria themselves are in `../criteria/ideas_v2.md`.
+
+| Criterion | What the screener adds | Verdict |
+|-----------|------------------------|---------|
+| 13 Beat market | StarMine ESS (5 levels) + 1-month change (47% / 92%; 94% above $2B market cap, 72% for $300M-$2B, 7% below $300M), I/B/E/S mean (1 = strong buy), Zacks (OUTPERFORM / NEUTRAL / UNDERPERFORM, 71% / 93%) | **Decided 2026-10-25:** pass = ESS Bullish or Very Bullish, or Neutral with a Moderate or Large Increase in the 1-month change. Keep the yfinance revision proxy as a second signal (they are only weakly related) and for names the screener lacks; Zacks as a tiebreak |
+| 1 Credit and balance sheet | Interest coverage (55% / 74%), debt to capital (74% / 99%), current ratio (47% / 65%), debt/equity, payout, FCF; S&P Financial Health and Quality scores | Use interest coverage, debt to capital, payout and FCF as inputs to the proxy score. The S&P scores are informational only: against approximate S&P ratings for 56 tickers Financial Health had no relation (Spearman -0.01) and Quality was weak (0.20). Debt/market cap = (D/E) / (P/B) when both positive. The 5-yr FCF history comes from Finnhub's FCF margin series (cash flow growth 5-yr is only a partial stand-in) |
+| 5 Chowder | Yield + 5-yr dividend growth | Cross-check; 64% within 1 point of DRIP's DGR 5Y, median gap 0.5 |
+| 6 ACN | D from 5-yr dividend growth, E from EPS growth 5-yr history (59% / 90%), R from revenue growth 5 yrs (75% / 100%) | Checked: Fidelity's EPS and revenue growth equal Finnhub's point-to-point CAGRs (median gap 0.0), so the screener values can be used directly for E and R and Finnhub is the fallback. Dividend growth differs from Finnhub by a median 0.7 points |
+| 9 Multiples | Current P/S, P/B, price/cash flow, P/E, cash (market cap / cash computable) | Current values only; the 10-yr P/E history comes from Finnhub (median) and the Treasury yield from FRED; the market P/B comparison is not built |
+| 10 Fundamentals | Return on investment (70% / 98%), operating margin 5-yr average and TTM vs 5-yr, EPS growth projected next year vs this year | Next-year consensus growth test is direct. ROI approximates ROIC but only as a current value; the TTM vs 5-yr margin ratio gives a direction. The earlier implied growth from P/E is no longer needed |
+| 12 Insider buying | Net Insider Shares Bought (62% / 97%) | Open-market buys only, millions of shares, never negative (checked against Finnhub). Use it as a pre-filter for "any buying" and Finnhub insider transactions (transaction code P = purchase, S = sale) for the 2+ buyers and net buying test; Finnhub is more reliable than yfinance, which has no codes and fewer rows |
+| 3 Jefferson grades | SG&A / net sales (55% / 79%), operating margin (73% / 100%), profit margin, interest coverage, debt to capital, cash flow growth, EPS growth | Inputs to the quality composite sub-scores (see "Quality composite"); the actual grades have no source |
+| 2 Management | MSCI Governance (Leader/Average/Laggard; 600 of 681 CCC names) | Used for the management part of the quality composite; weak proxy (governance, not capital allocation) |
+| 14 Diversification | Sector and industry | Usable; map labels to yfinance sectors |
+| 11 Cash growth | Cash flow growth (3 and 5 yr, TTM), single-point total cash | Partial: cash flow, not cash and equivalents; criterion 11 uses EDGAR cash instead |
+| 8, 7 | Nothing usable (no fair value, no dividend streak) | Unchanged |
+| Exit rules | Dividend growth vs prior year (0 or negative = freeze or cut), payout, coverage, interest coverage | Helps rule 3; rule 2 still needs a 5-yr average yield |
+
+Other columns (shares outstanding, 3/5/10-yr beta, return and standard deviation, Argus 14% filled, McLean, Trading Central) are informational. Caveats: hand-downloaded monthly snapshot; cash and FCF look like $ millions and debt/equity like a percent (unconfirmed); Net Insider Shares Bought units unknown; 935 ADRs and microcaps in the file need filtering.

@@ -23,7 +23,7 @@ Use the exact `YYYY-MM` name. Use the file names below exactly; the loaders look
 
 ### Fidelity screener (step b)
 Column reference, units and parsing rules: `docs/research/fidelity_screener.md`.
-- Use the same saved screen every month, with all five tabs/views: Search Criteria, Basic Facts, Performance & Volatility, Valuation Growth & Ownership, Analyst Opinions. The Search Criteria view must carry the full 62 columns (listed in `ideas_v2.md`, "Fidelity screener"). Do not add, remove or rename columns, because the merge stops if the files disagree.
+- Use the same saved screen every month, with all five tabs/views: Search Criteria, Basic Facts, Performance & Volatility, Valuation Growth & Ownership, Analyst Opinions. The Search Criteria view must carry the full 62 columns (listed in `docs/research/fidelity_screener.md` section 5). Do not add, remove or rename columns, because the merge stops if the files disagree.
 - Add fields as display columns only. Do not set criteria on margins, ROI, SG&A, insider activity or similar fields: Fidelity drops every stock with a blank value in a field it filters on.
 - Split the download into yield bands, because Fidelity caps an export at 500 rows. October used seven: 6% and up, 4–6%, 3–4%, 2.25–3%, 1.5–2.25%, 0.75–1.5% and 0.07–0.75%. Check each band's count before downloading and move an edge if it is over 500. Bands may touch at an edge; the merge removes the duplicate.
 - Do not filter on Security Type in Fidelity. ADRs (about a third of the rows) are removed later in code, and that keeps the files comparable month to month.
@@ -58,31 +58,25 @@ uv run --python 3.13 scripts/build_dataset.py
 ```
 Joins DRIP, the screener, Morningstar and Argus into one row per ticker and writes `data/dataset/<YYYY-MM>.csv` (columns prefixed `drip_`, `scr_`, `ms_`, `argus_`; percent fields are fractions). It prints the join summary: tickers per source, Morningstar and Argus names missing from the screener, CCC names missing from the screener (October: CABO, TGLS, XOM) and how complete the key fields are for CCC names. Look at the missing-CCC list each month.
 
-## 4b. Run the screen
-`uv run --python 3.13 scripts/run_screen.py` writes `data/reports/<YYYY-MM>/top50.md` and `top50.csv`. Macro inputs (S&P yield, 10-yr Treasury, inflation) are in `config/criteria.toml`; refresh them monthly until the data layer does.
+## 5. Refresh the market data cache
+```
+uv run --python 3.13 scripts/refresh_data.py                  # the rankable pool plus anything already cached
+uv run --python 3.13 scripts/refresh_data.py --scope ccc      # CCC names only; --scope top50, --tickers JNJ,KO, --kinds edgar,yf_splits also work
+```
+Fills `data/cache/div_invst.sqlite` from yfinance, Finnhub, EDGAR and FRED. Only snapshots older than their max age (`[refresh]` in `config/criteria.toml`) are fetched, so a rerun is cheap and an interrupted run resumes. The first full pass takes hours (Finnhub allows about one call per second); load `.env` keys first (`FINNHUB_API_KEY`, `EDGAR_USER_AGENT`). Criteria 1, 7, 8, 10, 11, 12 and the 13 fallback stay unknown for tickers that are not cached.
 
-## 5. Follow-up
+## 6. Run the screen
+`uv run --python 3.13 scripts/run_screen.py` writes `data/reports/<YYYY-MM>/top50.md` and `top50.csv`. The 10-yr Treasury and inflation come from the cached FRED series when the cache exists; the S&P yield is still a manual input in `config/criteria.toml` (`[macro]`): update it monthly.
+
+## 7. Follow-up
 - Update the folder's own `README.md` if a file's source or format changed.
 
 ## What each file feeds
 | File | Used for |
 |------|----------|
-| `drip_ccc.csv` | CCC universe, tier and streak band (criterion 7) |
-| `screener_results.xlsx` | StarMine score and Zacks (13), interest coverage, debt to capital and S&P scores (1), 5-yr EPS and revenue growth (ACN, 6), ROI and next-year EPS growth (10), SG&A and margins (3 proxy), insider buying (12, partial), multiples (9), sector (14), dividend cut check (exit rule 3) |
-| Morningstar PDFs | Fair value cross-check (8), rating, moat, uncertainty (2, 3); "deleted" status is a possible exit signal |
-| Argus PDF | Financial Strength grade (1), target-style cross-checks |
+| `drip_ccc.csv` | CCC universe, tier and streak band (Stock Type: Challenger 5-9, Contender 10-24, Champion 25-49, King 50+ years; criterion 7). Also yield, 5Y average yield, DGR 1/3/5/10Y, Chowder number (equals yield + DGR 5Y, not independent), Peter Lynch fair value, ROE, debt/capital, P/E, P/BV, PEG |
+| `screener_results.xlsx` | StarMine ESS (13), Zacks, McLean, Jefferson and I/B/E/S ratings (15), interest coverage and debt to capital (1, 3), 5-yr dividend, EPS and revenue growth (5, 6), ROI, margins and SG&A (3), multiples (9), MSCI governance (2), sector (14), dividend cut check (exit rule 3). Field-by-field mapping: `docs/research/fidelity_screener.md` section 8 |
+| Morningstar PDFs | Rating and moat, fair value cross-check (8), star rating in the agreement panel (15). Names are picks only, so absence says nothing; the "Pick List Deletions" table gives status `deleted`, shown as an informational note, not an exit trigger |
+| Argus PDF | Financial Strength grade, Analyst Opinions (15), target-style cross-checks. PDFs are read with PyMuPDF sorted-text extraction (its table finder splits decimals) |
 
-Detail on each source's columns and verdicts: `docs/criteria/ideas_v2.md` ("Monthly reference inputs", "Fidelity screener"). The loaders live in `src/div_invst/reference/` (one module per source).
-
-## Code map
-| Piece | File |
-|-------|------|
-| CCC universe loaders | `src/div_invst/reference/ccc.py` |
-| Morningstar pick-list loader | `src/div_invst/reference/morningstar.py` |
-| Argus loader | `src/div_invst/reference/argus.py` |
-| Shared helpers (month folder lookup, cell cleaning, PDF text) | `src/div_invst/reference/common.py` |
-| Screener merge | `scripts/merge_screener.py` |
-| Folder check | `scripts/check_month.py` |
-| Screener loader (5 tabs joined, units converted) | `src/div_invst/reference/screener.py` |
-| Combined dataset (one record per ticker, sources side by side) | `src/div_invst/reference/dataset.py`, `scripts/build_dataset.py` |
-
+Detail on each source's columns and verdicts: `docs/research/fidelity_screener.md` (screener), `docs/research/data_sources.md` (all sources). The code map is in the root `CLAUDE.md`; loaders live in `src/div_invst/reference/`.

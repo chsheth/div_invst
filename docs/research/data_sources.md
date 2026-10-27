@@ -1,22 +1,27 @@
-# div-invst: Data Source Research (draft for review)
+# div-invst: Data sources
 
-Written 2026-10-18. Purpose: for every data element behind the criteria in `../criteria/ideas_v2.md`, record the original source from `../criteria/ideas_v1.md`, whether it can be pulled programmatically, and the best alternative. Nothing is built yet.
+What each source can and cannot supply, and how it is used. The verdicts come from the 2026-10-18 four-ticker draft and the 2026-10-19
+coverage spike (`coverage_spike_2026-10-19.md`, 21 tickers; it wins where they differ). Which source feeds which criterion is the
+Inputs column of `../criteria/ideas_v2.md`. The Fidelity screener download is documented in `fidelity_screener.md`.
 
-**Status legend**
-- **Tested**: I called it from this machine on 2026-10-18 and it returned data.
-- **Docs only**: found in documentation or web search, not called. Treat as unconfirmed.
-- **Needs key**: free signup required; not tested because I have no key.
-- **Blocked**: no programmatic access found, or access is sales-gated or against site terms.
+## Current status of each source (2026-10-26)
+| Source | Use | Status |
+|--------|-----|--------|
+| yfinance | prices, yield, 5-yr average yield, dividends, splits, revisions and analyst data, insider text, debt and FCF | **Used** (unofficial, rate limited; cached and snapshotted) |
+| Finnhub free | annual series back to 1985 (EPS, ROE, ROIC, P/E, FCF margin, EBITDA), insider transactions with codes | **Used** (primary history source; price targets and dividends are premium) |
+| SEC EDGAR | annual facts through tag chains (banks' EPS, cash, dividends paid, REIT FFO inputs) | **Used** (CIK override for XOM; split-adjusted at read time; Form 4 parsing not needed) |
+| FRED CSV | 10-yr Treasury, CPI | **Used** (replaces the manual config inputs; the S&P yield is still manual) |
+| DRIP Investing "All CCC" export | CCC universe and streak band | **Used** (emailed, manual monthly drop) |
+| Fidelity stock screener | StarMine ESS, interest coverage, growth rates, quality fields | **Used** (manual monthly drop in yield bands) |
+| Morningstar pick lists, Argus Top 30 | fair value, rating, moat; financial strength grade | **Used** (manual monthly PDFs, optional) |
+| Dividend Vision | CCC streak years | **Dropped** 2026-10-25 (terms prohibit automated extraction) |
+| Financial Modeling Prep, Alpha Vantage | history | **Tested, dropped** (5-year cap and partial symbols; 25 calls a day) |
+| Dividend Radar, Seeking Alpha, Dividend.com, dividendinvestor.com, Value Line, S&P Capital IQ, Jefferson, Ford, Stewardship | ratings and lists | **Not used** (no API or against terms; manual reference only) |
+| Untested: Tiingo, Nasdaq.com dividend history, Stooq, OpenBB, FinanceToolkit, Digrin, StockAnalysis, Macrotrends, Finviz | cross-checks | Not tested; scraping terms restricted for the view-only sites |
 
-**Updated 2026-10-19:** the full coverage spike (21 tickers) ran after this draft. FMP and Finnhub are now tested, the CCC route and key questions are answered, and the per-criterion source choices changed. Results and the superseding source list: `coverage_spike_2026-10-19.md`. Where this file and the spike doc differ, the spike doc wins; sections 1 and 4 are unchanged.
+Status legend for the tables below: **Tested** = called from this machine and returned data; **Docs only** = found in documentation, not called; **Needs key** = free signup not done; **Blocked** = no programmatic access, sales-gated or against terms.
 
-**Updated 2026-10-25 (Dividend Vision):** dropped, its terms of use prohibit scraping and automated extraction; mentions of it below are historical.
-
-**Updated 2026-10-25:** the Fidelity stock screener download (manual, monthly) supplies the LSEG StarMine Equity Summary Score, interest coverage, 5-yr growth rates and more, so the "Fidelity StarMine" row below is no longer fully blocked: it is available as a manual monthly file. See `fidelity_screener.md`; the table below is left as the original 2026-10-18 findings.
-
-Original 2026-10-18 spike scope: yfinance 1.7.0 on 4 tickers (JNJ, KO, O, XOM); SEC EDGAR company facts for JNJ only; FRED CSV; the DRIP Investing and Dividend Vision pages. Four tickers is a sanity check, not coverage proof. The real coverage spike is still the next step.
-
-## 1. Original sources from ideas_v1.md: can they be used programmatically?
+## 1. Original sources from ideas_v1.md: can they be used programmatically? (2026-10-18)
 
 | Original source (v1) | What v1 used it for | Programmatic access? | Status | Evidence | Alternative |
 |---|---|---|---|---|---|
@@ -49,44 +54,7 @@ Summary: **every rating-agency source in v1 is a human-only source.** Credit rat
 | **Alpha Vantage** | Free key | Tested 2026-10-19 | `INCOME_STATEMENT` gives 20 annual years, `DIVIDENDS` 112 rows, `OVERVIEW` is premium. 25 calls/day. **Dropped** (unusable for a universe) |
 | **OpenInsider** (HTML) | None | Page loads | Scraping candidate for insider buys; not parsed; terms not checked. EDGAR Form 4 is the sanctioned route |
 
-## 3. Data element to source map (one row per computed value)
-
-"Computed value" is what gets compared with the threshold in `../criteria/ideas_v2.md`. Primary source is the first choice; the status column reflects the spike above.
-
-| # | Criterion | Computed value | Threshold | Primary source | Status | Fallback | Manual input needed |
-|---|---|---|---|---|---|---|---|
-| 1 | Credit quality | Financial Strength proxy score (0-100) and tier | Tier B or better (cutoff to confirm) | EDGAR statements + yfinance info (debt, market cap, payout) | Partly tested: debt, market cap, payout present; interest expense needs EDGAR or statements | FMP statements | Optional rating column |
-| 1 | Debt / market cap | totalDebt / marketCap | < 50% | yfinance info | Tested | EDGAR + price | No |
-| 1 | Interest coverage | Operating cash flow after tax / interest paid | >= 3x | EDGAR (tag chain) | Tag gaps seen | yfinance statements ("Interest Expense" row, not tested) | No |
-| 1 | Payout ratio | payoutRatio (earnings), also FCF-based | <= 60%, REIT/utility/MLP exempt | yfinance info | Tested (present for all 4) | EDGAR dividends / net income | No |
-| 1 | Annual earnings growth | YoY diluted EPS growth | 5-10% | EDGAR EPS | Tested (JNJ) | yfinance statements (4-5 yrs) | No |
-| 1 | Altman Z, FCF positive 5 yrs, cash growth | Computed | Per proxy weights | yfinance statements | Statements tested for shape, not all rows | EDGAR | No |
-| 2 | Management quality | Stewardship rating | Per Morningstar | None | Blocked | none | **Yes** |
-| 3 | Jefferson quality grades | 5 grades | Strongest / Strong / Low risk | None | Blocked | proxy score | **Yes** |
-| 4 | Current yield vs market | dividendYield / SPY yield | 1.5 to 2.5x (flag above) | yfinance (stock and SPY) | Stock tested; SPY not tested | any quote source | No |
-| 5 | Chowder rule | yield + 5-yr dividend CAGR; yield / SPY yield | 12 / 15 / 8% by sector; >= 50% of SPY | yfinance dividend history + price | Tested (history present) | FMP dividends | No |
-| 5 | Inflation floor | CPI YoY + margin | Growth >= floor | FRED CPI | Tested | none needed | Margin of safety value |
-| 6 | ACN | min(10%,Y) + min(30%, avg/median of D,E,R) | Same sector tiers as 5 | yfinance (Y, dividends) + EDGAR (E, R, 5-yr) | EPS tested; revenue tag varies | yfinance statements | No |
-| 7 | Dividend streak | Consecutive years of increase | >= 5 | yfinance dividend history (compute) or Dividend Vision streak | Tested (history). Needs special-dividend handling | CCC list | No |
-| 7 | Earnings streak | Years with EPS up in last 10 | >= 7 of 10 | EDGAR diluted EPS | Tested (JNJ 2009-2025) | none (yfinance only 4-5 yrs) | No |
-| 8 | Fair value | Lower of DDM and PE-vs-hist-PE; discount % | >= 15% below | Computed | Inputs available (dividends, price, EPS history) | n/a | Discount rate and growth assumptions |
-| 9 | P/S, P/E, P/B | priceToSales, trailingPE, priceToBook | P/S < 1.5; P/E below average and below 1/bond rate; P/B near 1 and below market | yfinance info | Tested (present) | FMP ratios | No |
-| 9 | Bond rate | 10-yr Treasury | Input to P/E test | FRED | Tested | none | No |
-| 9 | Price / cash | marketCap / totalCash | Low (no numeric threshold given) | yfinance info | Tested | EDGAR | **Threshold needed** |
-| 10 | PE vs historical PE | trailing PE / avg of historical PE | Current below normal | yfinance prices + EDGAR EPS | Inputs tested | FMP | No |
-| 10 | ROE, ROIC trend | Net income / equity; NOPAT / invested capital, direction over years | Rising | Statements (yfinance 4-5 yrs, EDGAR longer) | ROE missing from info for JNJ; compute instead | FMP | No |
-| 10 | Est. earnings growth | earningsGrowth; estimate table | Positive (threshold to define) | yfinance | Tested (present) | Finnhub estimates | **Threshold needed** |
-| 11 | Cash growth | Cash YoY change | > 0 | EDGAR or yfinance balance sheet | Tested | none | No |
-| 12 | Insider buying | Net insider purchases over trailing period | Increasing | yfinance insider transactions or EDGAR Form 4 | yfinance tested; EDGAR feed reachable, parse not tried | OpenInsider | **Threshold needed** |
-| 13 | Beat-market proxy | Target-price upside, recommendation mean, estimate revisions | 7+ equivalent (proxy scale to define) | yfinance | Tested 2026-10-21 (21/21; see `revision_spike_2026-10-21.md`) | Finnhub recommendations (4 months) | StarMine score optional |
-| 14 | Diversification | Sector vs holdings | Not already owned; optional sector cap | yfinance sector + your holdings file | Tested (sector present) | none | Holdings file |
-| 15 | Accuracy calls | Jefferson / Ford agree | Yes | None | Blocked | none | **Yes** |
-| Exit | Yield compression | yield / 5-yr average yield | <= 50% | yfinance fiveYearAvgDividendYield | Tested (present) | computed from history | No |
-| Exit | Fair-value ceiling | price / fair value | > +15% | Computed | See criterion 8 | n/a | No |
-| Exit | Fundamental break | Dividend cut/freeze, payout over limit, falling EPS | Any | Dividend history, payout, EPS | Tested | n/a | No |
-| Universe | CCC membership and tier | Streak years, tier | Primary tier flag | Dividend Vision tables or emailed DRIP workbook | Dividend Vision page loads; workbook email-gated | Compute streak from history | Drop the emailed file in a folder, if used |
-
-## 4. Proposed refresh cadence (for discussion)
+## 3. Refresh cadence
 
 | Data | Cadence | Reason |
 |---|---|---|
@@ -97,12 +65,3 @@ Summary: **every rating-agency source in v1 is a human-only source.** Credit rat
 | Financial statements, EPS history | After each 10-Q / 10-K, checked weekly | EDGAR updates within minutes of filing |
 | CCC list and streaks | Monthly or weekly | Lists update monthly or weekly depending on source |
 | Rating-agency columns | Manual, when you update them | No automated source |
-
-## 5. Gaps and decisions for you
-
-1. **Blocked sources.** Morningstar, Value Line, S&P Quality Rank, StarMine, Jefferson, Ford and Stewardship cannot be fetched. Confirm the plan: proxy scores for credit quality and StarMine, and manual columns for Stewardship, Jefferson and Ford. Criteria 2, 3 and 15 will stay "unknown" unless you fill them.
-2. **CCC list source.** The DRIP Investing workbook is emailed. Options: (a) you subscribe and drop the file in a folder, (b) scrape Dividend Vision's public tables, (c) compute streaks from yfinance dividend history. I lean to (c) as the base with (b) as a cross-check. Status 2026-10-19: yfinance-computed streaks work for most tickers but show errors (XOM, PG, ED); still need the Dividend Vision cross-check. User confirmation of the route is pending. Update 2026-10-22: settled differently: the user supplied the DRIP "All CCC" export (684 stocks) and `scripts/fetch_ccc.py` pulls Dividend Vision (288); the streak is the conservative lower claim of the two (see `ideas_v2.md` decisions log).
-3. **API keys.** Answered 2026-10-19: keys supplied in `.env`, FMP and Finnhub and Alpha Vantage tested. Finnhub kept; FMP and Alpha Vantage dropped.
-4. **Reliability.** yfinance is unofficial and rate limited. Plan: cache everything locally, back off on 429s, and use EDGAR as the backbone for fundamentals history.
-5. **Thresholds.** Resolved 2026-10-21: all defaults accepted; see the decisions log in `../criteria/ideas_v2.md`.
-6. **dividendinvestor.com** returned 403 to my fetch, so I could not assess it. If you use it manually, tell me what you pull from it.

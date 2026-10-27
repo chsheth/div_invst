@@ -32,7 +32,7 @@ Tickers (21): JNJ KO PG MCD ABBV XOM CVX MMM CAT MSFT AAPL T MO O PLD NEE DUK ED
 6. **FMP adds little**: no more history than yfinance, and symbol coverage on the free tier is partial. Drop it from the primary plan unless a specific gap appears. Do not build on it.
 7. **Price-target data** (StarMine proxy): yfinance has it for all 21 tickers; Finnhub's is premium. Use yfinance.
 
-## Updated criteria sources (supersedes `data_sources.md` section 3 where they differ)
+## Updated criteria sources (these replaced the element-to-source map of the first draft; the current mapping is the Inputs column of `../criteria/ideas_v2.md`)
 
 - Criterion 7 earnings streak, 10 PE history, ROE/ROIC trend: Finnhub annual series (primary), EDGAR (cross-check), not yfinance statements.
 - Criterion 12 insider buying: yfinance insider transactions or Finnhub `insider-transactions` (both work); EDGAR Form 4 not needed.
