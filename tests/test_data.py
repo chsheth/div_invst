@@ -22,6 +22,7 @@ class StoreTest(unittest.TestCase):
         self.assertIsNone(s.latest("yahoo", "yf_info", "KO", 1, T0 + timedelta(days=4)))
         self.assertIsNotNone(s.latest("yahoo", "yf_info", "KO", 3, T0 + timedelta(days=4)))
         self.assertIsNone(s.latest("yahoo", "yf_info", "PG"))
+        self.assertEqual(s.tickers("yf_info"), {"KO"})
 
 
 class RefreshTest(unittest.TestCase):

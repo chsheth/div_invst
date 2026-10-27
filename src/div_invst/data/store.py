@@ -59,5 +59,9 @@ class Store:
                                "ORDER BY fetched_at, id", (source, kind, ticker)).fetchall()
         return [(datetime.fromisoformat(f), json.loads(p)) for f, p in rows]
 
+    def tickers(self, kind: str) -> set[str]:
+        """Tickers that have at least one snapshot of `kind`."""
+        return {r[0] for r in self.db.execute("SELECT DISTINCT ticker FROM raw WHERE kind = ?", (kind,))}
+
     def close(self) -> None:
         self.db.close()

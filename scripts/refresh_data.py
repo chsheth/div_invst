@@ -4,7 +4,7 @@
 # ///
 """Refresh the SQLite cache (data/cache/div_invst.sqlite) from yfinance, Finnhub and FRED.
 
-  uv run --python 3.13 scripts/refresh_data.py                 # every ticker with enough coverage (the rankable pool)
+  uv run --python 3.13 scripts/refresh_data.py                 # the rankable pool (screener coverage) plus anything already cached
   uv run --python 3.13 scripts/refresh_data.py --scope top50   # only the current top 50
   uv run --python 3.13 scripts/refresh_data.py --scope ccc     # every CCC name in US scope
   uv run --python 3.13 scripts/refresh_data.py --tickers JNJ,KO --kinds yf_info,fred
@@ -36,7 +36,7 @@ def load_dotenv(path: Path) -> None:
             os.environ.setdefault(k.strip(), v.strip().strip("'\""))
 
 
-def pick_tickers(args, cfg) -> list[str]:
+def pick_tickers(args, cfg, store) -> list[str]:
     if args.tickers:
         return [t.strip().upper() for t in args.tickers.split(",") if t.strip()]
     dataset = build_dataset()
@@ -45,8 +45,10 @@ def pick_tickers(args, cfg) -> list[str]:
     rows = screen(dataset, cfg)
     if args.scope == "top50":
         return [r["ticker"] for r in rank(rows, cfg)]
+    # The pool: coverage on the screener-only criteria, plus every ticker already cached. Coverage cannot be the only
+    # test: criteria that read the cache are unknown for uncached names, so a fresh cache would shrink the pool to nothing.
     floor = cfg["ranking"]["min_coverage"]
-    return sorted(r["ticker"] for r in rows if r["coverage"] >= floor)
+    return sorted({r["ticker"] for r in rows if r["coverage"] >= floor} | store.tickers("yf_info"))
 
 
 def main() -> None:
@@ -58,9 +60,9 @@ def main() -> None:
     load_dotenv(ROOT / ".env")
     cfg = load_config()
     kinds = [k.strip() for k in args.kinds.split(",")] if args.kinds else None
-    tickers = pick_tickers(args, cfg)
-    print(f"{len(tickers)} tickers, kinds: {', '.join(kinds or FETCHERS)}")
     store = Store()
+    tickers = pick_tickers(args, cfg, store)
+    print(f"{len(tickers)} tickers, kinds: {', '.join(kinds or FETCHERS)}")
     stats = refresh(store, tickers, cfg, kinds)
     print(f"fetched {stats['fetched']}, already fresh {stats['fresh']}, errors {len(stats['errors'])}")
 
