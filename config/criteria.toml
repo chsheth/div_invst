@@ -51,7 +51,7 @@ near_high = 0.90          # ROE or ROIC at this share of its 10-year high also c
 min_eps_growth = 0.03     # next-year consensus EPS growth floor; inflation applies when higher
 min_subtests = 2
 
-[strength]                # criterion 1: Financial Strength proxy (weights from ideas_v2.md, Altman Z dropped, re-weighted)
+[strength]                # criterion 1: Financial Strength proxy (weights in docs/criteria/ideas_v2.md, Altman Z dropped, re-weighted)
 pass_score = 65           # tier B or better
 min_components = 3
 max_debt_to_market_cap = 0.5
@@ -90,7 +90,7 @@ weights = { eps_rev_90d = 0.4, revision_balance = 0.2, grade_balance = 0.2, reco
 min_coverage = 0.70       # evaluated criteria / applicable implemented criteria
 top_n = 50
 
-[refresh]                 # data layer: refetch when the newest snapshot is older than this many days (docs/research/data_sources.md section 4)
+[refresh]                 # data layer: refetch when the newest snapshot is older than this many days (docs/research/data_sources.md section 3)
 yf_info = 1               # price, yield, valuation, 5-yr average yield
 yf_dividends = 7
 yf_revisions = 1          # point-in-time analyst data: keep a snapshot every day
