@@ -11,6 +11,7 @@ from datetime import date, datetime
 from functools import lru_cache
 
 from . import http
+from .symbols import vendor
 
 PAUSE = 0.2  # SEC allows 10 requests/second
 YEARS = 15
@@ -98,7 +99,7 @@ def annual(facts: dict, unit: str, kind: str, tags: list[str]) -> dict[int, list
 
 
 def fetch(symbol: str) -> dict:
-    cik = CIK_OVERRIDES.get(symbol) or ticker_map().get(symbol.upper())
+    cik = CIK_OVERRIDES.get(symbol) or ticker_map().get(vendor(symbol))
     if not cik:
         raise RuntimeError(f"{symbol} is not in the SEC ticker map")
     facts = http.get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json", headers=_headers(), sleep=PAUSE)

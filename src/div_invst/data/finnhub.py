@@ -1,6 +1,7 @@
 """Finnhub free-tier endpoints (60 calls/minute). Key from FINNHUB_API_KEY. stock/dividend is premium (403), so dividends come from yfinance."""
 import os
 from . import http
+from .symbols import vendor
 
 BASE = "https://finnhub.io/api/v1/"
 PAUSE = 1.1
@@ -10,7 +11,7 @@ def _get(path: str, symbol: str, **extra):
     key = os.environ.get("FINNHUB_API_KEY")
     if not key:
         raise RuntimeError("FINNHUB_API_KEY is not set")
-    return http.get(BASE + path, params={"symbol": symbol, "token": key, **extra}, sleep=PAUSE)
+    return http.get(BASE + path, params={"symbol": vendor(symbol), "token": key, **extra}, sleep=PAUSE)
 
 
 def metric(symbol: str) -> dict:

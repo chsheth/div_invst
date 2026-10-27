@@ -5,6 +5,8 @@ fractions where they are read, not in the store.
 """
 import time
 
+from .symbols import vendor
+
 INFO_FIELDS = [
     "sector", "marketCap", "currentPrice", "dividendYield", "dividendRate", "fiveYearAvgDividendYield", "payoutRatio",
     "trailingPE", "forwardPE", "priceToBook", "totalDebt", "totalCash", "freeCashflow", "operatingCashflow",
@@ -26,7 +28,7 @@ def _ticker(symbol: str):
     import yfinance as yf
 
     time.sleep(PAUSE)
-    return yf.Ticker(symbol)
+    return yf.Ticker(vendor(symbol))
 
 
 def info(symbol: str) -> dict:

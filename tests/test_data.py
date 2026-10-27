@@ -160,5 +160,11 @@ class ReaderTest(unittest.TestCase):
         self.assertIsNone(r["dividends"])
 
 
+class SymbolTest(unittest.TestCase):
+    def test_vendor_symbols(self):
+        from div_invst.data.symbols import vendor
+        self.assertEqual([vendor(t) for t in ("BF/B", "BRK.B", "KO", "brk.b")], ["BF-B", "BRK-B", "KO", "BRK-B"])
+
+
 if __name__ == "__main__":
     unittest.main()
