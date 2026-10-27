@@ -13,7 +13,7 @@ wheels/
 .env
 .env.*
 !.env.example
-data/
+/data/
 
 # Licensed vendor reports and monthly downloads
 docs/reference/

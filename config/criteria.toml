@@ -43,3 +43,13 @@ neutral_pass_if_change = ["Moderate Increase", "Large Increase"]
 [ranking]
 min_coverage = 0.70       # evaluated criteria / applicable implemented criteria
 top_n = 50
+
+[refresh]                 # data layer: refetch when the newest snapshot is older than this many days (docs/research/data_sources.md section 4)
+yf_info = 1               # price, yield, valuation, 5-yr average yield
+yf_dividends = 7
+yf_revisions = 1          # point-in-time analyst data: keep a snapshot every day
+fh_metric = 7             # annual series and current metrics
+fh_insider = 1
+yf_splits = 30           # to restate EDGAR per-share history
+edgar = 7                 # annual facts change only at 10-K filing
+fred = 1

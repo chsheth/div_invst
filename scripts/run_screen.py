@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["openpyxl>=3.1", "pymupdf>=2.0"]
+# dependencies = ["openpyxl>=3.1", "pymupdf>=2.0", "requests>=2.31"]
 # ///
 """Run the criteria over the newest month's dataset -> data/reports/<month>/top50.csv and top50.md."""
 import csv
@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from div_invst.criteria import REGISTRY, load_config, rank, screen  # noqa: E402
+from div_invst.data import DEFAULT_DB, Store, apply_macro, attach, read_macro  # noqa: E402
 from div_invst.reference import build_dataset, latest_month_dir  # noqa: E402
 
 SYMBOL = {"pass": "Y", "fail": "n", "unknown": "?", "na": "-"}
@@ -19,7 +20,12 @@ SYMBOL = {"pass": "Y", "fail": "n", "unknown": "?", "na": "-"}
 def main() -> None:
     month = latest_month_dir()
     cfg = load_config()
-    rows = screen(build_dataset(month), cfg)
+    dataset = build_dataset(month)
+    if DEFAULT_DB.exists():  # cached data layer: FRED replaces the manual Treasury and CPI inputs, snapshots attach as rec["cache"]
+        store = Store()
+        cfg = apply_macro(cfg, read_macro(store))
+        print(f"cache: {attach(dataset, store)} tickers, macro as of {cfg['macro']['as_of']}, Treasury {cfg['macro']['treasury_10y']:.2%}, CPI {cfg['macro']['inflation']:.2%}")
+    rows = screen(dataset, cfg)
     top = rank(rows, cfg)
     out = ROOT / "data" / "reports" / month.name
     out.mkdir(parents=True, exist_ok=True)
