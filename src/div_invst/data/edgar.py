@@ -44,11 +44,13 @@ FIELDS = {
     "long_term_debt": ("USD", "instant", ["LongTermDebt", "LongTermDebtNoncurrent", "LongTermDebtAndCapitalLeaseObligations",
                                           "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities",
                                           "LongTermNotesPayable", "NotesPayable", "SeniorNotes", "UnsecuredDebt"]),
-    # REIT FFO proxy: net income + depreciation and amortization - gains on property sales (ideas_v2.md decisions log)
+    # REIT FFO proxy: net income + D&A + real-estate impairments - gains on property sales (validated 2026-10-26, docs/research/reit_ffo_validation_2026-10-26.md).
+    # Some REITs (PLD) report their gains on custom tags that company facts do not carry: the proxy then overstates FFO.
     "depreciation": ("USD", "flow", ["DepreciationDepletionAndAmortization", "DepreciationAndAmortization",
                                      "DepreciationAmortizationAndAccretionNet", "Depreciation", "RealEstateDepreciation"]),
+    "impairment": ("USD", "flow", ["ImpairmentOfRealEstate", "AssetImpairmentCharges"]),
     "property_sale_gain": ("USD", "flow", ["GainLossOnSaleOfPropertiesNetOfApplicableIncomeTaxes",
-                                           "GainLossOnSaleOfProperties",
+                                           "GainLossOnSaleOfProperties", "GainLossOnSaleOfPropertiesBeforeApplicableIncomeTaxes",
                                            "GainLossOnSaleOfRealEstateInvestmentPropertyNetOfTax",
                                            "GainLossOnSaleOfPropertyPlantEquipment"]),
 }

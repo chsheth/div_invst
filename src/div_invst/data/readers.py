@@ -134,8 +134,9 @@ def revision_metrics(revisions: dict | None, price: float | None, rec_mean: floa
 
 # ---------------------------------------------------------------- EDGAR derived
 def edgar_latest(edgar_data: dict | None) -> dict | None:
-    """Latest fiscal-year values, plus EBITDA and the REIT FFO proxy (net income + D&A - property-sale gains) and
-    its payout (dividends paid / FFO) when the inputs are there."""
+    """Latest fiscal-year values, plus EBITDA and the REIT FFO proxy (net income + D&A + real-estate impairments -
+    property-sale gains) and its payout (dividends paid / FFO) when net income and D&A are there. A missing impairment or
+    gain tag counts as 0 and is reported in `ffo_impairment_known` / `ffo_gain_known` (a missing gain overstates FFO)."""
     fields = (edgar_data or {}).get("fields")
     if not fields:
         return None
@@ -149,13 +150,15 @@ def edgar_latest(edgar_data: dict | None) -> dict | None:
     if year is None:
         return None
     ni, dep, gain = val("net_income", year), val("depreciation", year), val("property_sale_gain", year)
+    impairment = val("impairment", year)
     opinc, paid = val("operating_income", year), val("dividends_paid", year)
-    ffo = ni + dep - (gain or 0) if ni is not None and dep is not None else None
+    ffo = ni + dep + (impairment or 0) - (gain or 0) if ni is not None and dep is not None else None
     return {
         "fiscal_year": year, "net_income": ni, "operating_income": opinc, "interest_expense": val("interest_expense", year),
-        "long_term_debt": val("long_term_debt", year), "cash": val("cash", year), "dividends_paid": paid,
+        "long_term_debt": val("long_term_debt", year), "cash": val("cash", year), "cash_prev": val("cash", year - 1),
+        "dividends_paid": paid,
         "ebitda": opinc + dep if opinc is not None and dep is not None else None,
-        "ffo": ffo, "ffo_payout": paid / ffo if paid is not None and ffo and ffo > 0 else None,
+        "ffo": ffo, "ffo_impairment_known": impairment is not None, "ffo_gain_known": gain is not None, "ffo_payout": paid / ffo if paid is not None and ffo and ffo > 0 else None,
     }
 
 

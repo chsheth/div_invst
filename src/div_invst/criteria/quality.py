@@ -4,7 +4,7 @@ Criterion 3 is the average of four sub-scores (balance sheet, cash flow quality,
 each the average of its available inputs on a 0-100 scale; at least `min_subscores` must exist. These are proxies for the
 Jefferson Research grades; thresholds are defaults in docs/criteria/ideas_v2.md ("Quality composite").
 """
-from .base import FAIL, PASS, UNKNOWN, criterion, is_reit, make, src
+from .base import FAIL, PASS, UNKNOWN, criterion, ffo_payout, is_reit, make, src
 
 
 def _ladder(value, steps, floor):
@@ -20,7 +20,15 @@ def _mean(values):
     return sum(values) / len(values) if values else None
 
 
-def subscores(rec: dict) -> dict:
+def _reit_payout_score(rec, cfg):
+    """REITs: EPS coverage is meaningless, so score the FFO-proxy payout instead (100 at or below the cutoff, 60 up to 100%)."""
+    payout = ffo_payout(rec)
+    if payout is None or cfg is None:
+        return None
+    return 100 if payout <= cfg["reit"]["max_ffo_payout"] else 60 if payout <= 1.0 else 0
+
+
+def subscores(rec: dict, cfg: dict | None = None) -> dict:
     s = lambda name: src(rec, "screener", name)  # noqa: E731
     financial = rec.get("sector") == "Financials"
     skip_ratios = financial or is_reit(rec) or rec.get("sector") == "Utilities"
@@ -40,7 +48,8 @@ def subscores(rec: dict) -> dict:
     trend, cover = s("op_margin_trend"), s("div_coverage_ttm")
     earnings = _mean([None if not growth else 100 * sum(g > 0 for g in growth) / len(growth),
                       None if trend is None else _ladder(trend, [(0.95, 100), (0.85, 60)], 20),
-                      None if cover is None or is_reit(rec) else _ladder(cover, [(1.5, 100), (1.0, 60)], 0)])
+                      _reit_payout_score(rec, cfg) if is_reit(rec) else
+                      None if cover is None else _ladder(cover, [(1.5, 100), (1.0, 60)], 0)])
 
     sga, om, roi = s("sga_to_sales"), s("op_margin_5y"), s("roi")
     efficiency = _mean([None if sga is None or skip_ratios else (100 if sga <= 0.20 else 60 if sga <= 0.35 else 20),
@@ -60,7 +69,7 @@ def management(rec, cfg, ctx):
 @criterion(3, "Quality grades")
 def quality_score(rec, cfg, ctx):
     q = cfg["quality"]
-    parts = subscores(rec)
+    parts = subscores(rec, cfg)
     known = {k: v for k, v in parts.items() if v is not None}
     if len(known) < q["min_subscores"]:
         return make(3, UNKNOWN, **parts)

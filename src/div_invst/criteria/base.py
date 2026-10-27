@@ -65,3 +65,8 @@ def is_reit(rec: dict) -> bool:
 
 def is_bank_or_insurer(rec: dict) -> bool:
     return rec.get("sector") == "Financials" and (rec.get("industry") or "") in ("Banks", "Insurance", "Thrifts & Mortgage Finance")
+
+
+def ffo_payout(rec: dict):
+    """REIT payout from the cache (dividends paid / FFO proxy), or None."""
+    return ((rec.get("cache") or {}).get("edgar") or {}).get("ffo_payout")

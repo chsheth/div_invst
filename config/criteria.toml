@@ -36,9 +36,29 @@ agreement_pass = 0.25
 ibes_buy_at_most = 2.0
 ibes_sell_at_least = 3.0
 
+[reit]                    # criteria 1 and 3: payout is dividends paid / FFO proxy (validated 2026-10-26 on O and PLD)
+max_ffo_payout = 0.85     # O 76% and PLD 68% reported; the proxy carries about +/-10% error, so the margin is kept
+
 [starmine]                # criterion 13
 pass_levels = ["Bullish", "Very Bullish"]
 neutral_pass_if_change = ["Moderate Increase", "Large Increase"]
+
+[history]                 # criterion 7
+min_dividend_years = 5    # non-CCC names: yfinance streak (a screen only; CCC names pass through the DRIP band)
+earnings_window = 10      # EPS year-over-year comparisons looked at
+earnings_up_years = 7     # up years needed out of the window (scaled down when fewer comparisons exist)
+min_comparisons = 8       # fewer than this is unknown
+one_off_swing = 0.40      # EPS moving this much from both neighbours, in opposite directions, is a one-off year
+
+[insider]                 # criterion 12 (Finnhub codes P and S, last 183 days)
+min_buyers = 2            # different insiders buying on the open market; net shares must also be positive
+
+[revision]                # criterion 13 second signal: 0-10 proxy from yfinance snapshots
+pass_score = 7.0
+min_components = 2
+eps_rev_90d_full = 0.10   # a 90-day estimate change of +/- this maps to 10 / 0
+target_upside_full = 0.20 # price-target upside of +/- this maps to 10 / 0
+weights = { eps_rev_90d = 0.4, revision_balance = 0.2, grade_balance = 0.2, recommendation = 0.1, target_upside = 0.1 }
 
 [ranking]
 min_coverage = 0.70       # evaluated criteria / applicable implemented criteria
