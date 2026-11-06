@@ -7,7 +7,7 @@ evaluable and all passed; otherwise unknown.
 """
 from statistics import median
 
-from .base import FAIL, PASS, UNKNOWN, criterion, first, is_bank_or_insurer, is_reit, make, src
+from .base import FAIL, PASS, UNKNOWN, criterion, ffo_payout, first, is_bank_or_insurer, is_reit, make, src
 from .fundamentals import pe_vs_history
 
 
@@ -37,12 +37,20 @@ def multiples(rec, cfg, ctx):
     return make(9, UNKNOWN, **tests)
 
 
+def uncovered_payout(rec: dict, c: dict) -> bool:
+    """True when the payout is above `max_payout`. REITs are judged on the cached FFO-proxy payout only (their GAAP payout
+    is overstated by depreciation: O shows 220% against 75% of FFO); without it they are not guarded."""
+    payout = ffo_payout(rec) if is_reit(rec) else first(src(rec, "screener", "payout"), (rec.get("cache") or {}).get("payout"))
+    return payout is not None and payout > c["max_payout"]
+
+
 def fair_values(rec: dict, cfg: dict) -> dict:
     """The two fair-value estimates, each None when its inputs are missing.
 
     ddm: two-stage dividend discount. The current annual dividend grows at the 5-year dividend CAGR (capped at
     `stage1_cap` against one-off jumps, floored at 0) for `stage1_years`, then at `terminal_growth` for good, discounted
-    at the 10-year Treasury + equity premium. Skipped when required return - terminal growth is under `min_spread`.
+    at the 10-year Treasury + equity premium. Skipped when required return - terminal growth is under `min_spread`, or when
+    the dividend is not covered (see `uncovered_payout`): the model assumes the dividend is paid, so it would value a cut at full price.
     pe: median of the last `eps_years` fiscal-year EPS (smooths one-offs) x the median P/E of the last 10 years
     (positive P/Es; a median because one-off GAAP charges create P/Es of 40 to 150). Skipped for REITs, whose GAAP EPS is depressed by depreciation.
     """
@@ -52,7 +60,7 @@ def fair_values(rec: dict, cfg: dict) -> dict:
     out = {"price": price, "ddm": None, "pe": None}
     rate = cache.get("forward_yield")
     growth = first((cache.get("dividends") or {}).get("cagr5"), src(rec, "screener", "dgr_5y"), src(rec, "drip", "dgr_5y"))
-    if price and rate and growth is not None:
+    if price and rate and growth is not None and not uncovered_payout(rec, c):
         r, g1, g2 = cfg["macro"]["treasury_10y"] + c["equity_premium"], max(0.0, min(growth, c["stage1_cap"])), c["terminal_growth"]
         if r - g2 >= c["min_spread"]:
             d, value = price * rate, 0.0

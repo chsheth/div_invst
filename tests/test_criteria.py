@@ -229,6 +229,20 @@ class FairValueTest(unittest.TestCase):
         res = evaluate(no_div, CFG)[8]
         self.assertEqual((res.detail["pe"], res.flags), (75.0, ["pe estimate only"]))   # P/E estimate still works
 
+    def test_uncovered_payout_skips_the_ddm(self):
+        from div_invst.criteria.valuation import fair_values
+        r = self.rec(price=40.0)
+        r["screener"] = {"payout": 1.2}
+        self.assertIsNone(fair_values(r, CFG)["ddm"])                     # dividend not covered by earnings
+        r["screener"]["payout"] = 0.9
+        self.assertIsNotNone(fair_values(r, CFG)["ddm"])
+        reit = self.rec(price=40.0, sector="Real Estate")
+        reit["screener"] = {"payout": 2.2}                                 # GAAP payout is meaningless for REITs
+        self.assertIsNotNone(fair_values(reit, CFG)["ddm"])
+        reit["cache"]["edgar"] = {"ffo_payout": 1.1}
+        res = evaluate(reit, CFG)[8]
+        self.assertEqual(res.status, UNKNOWN)                              # FFO payout above 100%: no estimate left
+
     def test_stage1_growth_is_capped_and_floored(self):
         from div_invst.criteria.valuation import fair_values
         capped = fair_values(self.rec(cagr=0.30), CFG)["ddm"]

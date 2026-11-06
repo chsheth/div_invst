@@ -41,6 +41,7 @@ equity_premium = 0.035    # required return = 10-yr Treasury + this (3.5% chosen
 stage1_cap = 0.08         # DDM stage 1: the 5-yr dividend CAGR, capped here against one-off jumps, floored at 0
 stage1_years = 5
 terminal_growth = 0.04    # DDM stage 2, for good (about long-run economic growth)
+max_payout = 1.0          # DDM skipped above this payout (REITs: FFO proxy); added 2026-11-05 after IIPR ranked #11 on a DDM of 4x its price
 min_spread = 0.02         # DDM skipped when required return - terminal growth is below this
 eps_years = 3             # P/E method: median EPS of the last N fiscal years x median 10-yr P/E
 min_discount = 0.15       # pass when price is at least this far below the lower estimate
