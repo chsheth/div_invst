@@ -21,6 +21,11 @@ CIK_OVERRIDES = {
     "XOM": "0000034088",  # ExxonMobil Holdings Corp (2115436) has no history yet; Exxon Mobil Corp does
 }
 
+# Tickers with no SEC 10-K facts (checked 2026-11-05): banks without a holding company file with the FDIC (OZK, PFBC, HIFS,
+# TOWN), BSRT is a Regulation A issuer, GAMI deregistered after its 2022 delisting. fetch() stores an empty record for them
+# instead of an error, so they count as fetched and the EDGAR-based criteria stay unknown.
+NO_SEC_FILINGS = frozenset({"OZK", "PFBC", "HIFS", "TOWN", "BSRT", "GAMI"})
+
 # field -> (unit, kind, tag chain); kind is flow (about one year) or instant
 FIELDS = {
     "eps_diluted": ("USD/shares", "flow", ["EarningsPerShareDiluted", "EarningsPerShareBasicAndDiluted"]),
@@ -99,6 +104,8 @@ def annual(facts: dict, unit: str, kind: str, tags: list[str]) -> dict[int, list
 
 
 def fetch(symbol: str) -> dict:
+    if symbol in NO_SEC_FILINGS:
+        return {"cik": None, "entity": None, "fields": {}, "warning": "no SEC 10-K filings (see NO_SEC_FILINGS)"}
     cik = CIK_OVERRIDES.get(symbol) or ticker_map().get(vendor(symbol))
     if not cik:
         raise RuntimeError(f"{symbol} is not in the SEC ticker map")

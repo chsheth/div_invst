@@ -56,6 +56,12 @@ class RefreshTest(unittest.TestCase):
 
 
 class EdgarTest(unittest.TestCase):
+    def test_tickers_without_sec_filings_get_an_empty_record_without_a_request(self):
+        from div_invst.data import edgar
+        got = edgar.fetch("OZK")   # no EDGAR_USER_AGENT or network needed
+        self.assertEqual((got["fields"], got["cik"]), ({}, None))
+        self.assertIn("warning", got)
+
     def test_annual_picks_latest_filing_and_filters(self):
         from div_invst.data import edgar
         e = lambda start, end, val, filed, form="10-K": {"start": start, "end": end, "val": val, "filed": filed, "form": form}

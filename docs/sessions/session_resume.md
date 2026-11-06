@@ -1,6 +1,6 @@
 # Session resume
 
-_Last updated: 2026-10-26 (session 7)_. Live state only: open items and next steps. History is `session_log.md`; the criteria and thresholds
+_Last updated: 2026-11-05 (session 8)_. Live state only: open items and next steps. History is `session_log.md`; the criteria and thresholds
 are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decisions_log.md`; the build status per slice is `../plan/PLAN.md`.
 
 ## How to resume
@@ -9,14 +9,14 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 3. Monthly files: `../guides/monthly_drop.md`. Source behaviour: `../research/data_sources.md`.
 
 ## State
-- All 15 criteria are implemented (14 is na without holdings); 30 unit tests pass. Criteria 1, 7, 8, 10, 11, 12 and the revision proxy read the SQLite cache, so they are unknown until a ticker's data is cached.
+- All 15 criteria are implemented (14 is na without holdings); 32 unit tests pass. Criteria 1, 7, 8, 10, 11, 12 and the revision proxy read the SQLite cache, so they are unknown until a ticker's data is cached.
 - Last commit `1daa42d` on `main`, pushed.
-- First full fetch finished 2026-10-26: 1,354 tickers cached; 6 EDGAR errors remain (BSRT, OZK, PFBC 404; GAMI, HIFS, TOWN not in the SEC ticker map).
-- Uncommitted: this file (state and next steps updated 2026-10-26, end of session 7).
+- First full fetch finished 2026-10-26: 1,354 tickers cached; the 6 EDGAR errors (BSRT, OZK, PFBC, GAMI, HIFS, TOWN) are tickers with no SEC 10-K filings; `NO_SEC_FILINGS` in `edgar.py` stores an empty record for them (2026-11-05), so criteria 7's EDGAR fallback and 11 stay unknown for them.
+- Uncommitted: the criterion 8 payout guard and its docs (2026-11-05). With it IIPR is #25 (criterion 8 unknown); top 50 changes: MLI, BYD, JOE out, JBSS, DLB, VC in.
 - First full screen (2026-10-26): 1,679 screened, 1,333 with enough coverage to rank; top 50 are 8 to 11 of 13-14 applicable. Yield traps no longer dominate: IIPR (14.0%, #11), KRP (#14), INSW (18.2%, #37) and VRTS (#39) are the only 8%+ yields in the top 50.
 
 ## Open items
-1. **Criterion 8 yield-trap guard (deferred):** of 197 DDM passes, 57 yield 10% or more (mortgage REITs, BDCs, NHTC at 45%). Decide after the full ranking whether to skip the dividend estimate above about 12% yield or a payout above 100%.
+1. **Stale dividend CAGR:** IIPR's 5-yr CAGR (11%) comes from the 2019-21 ramp while dividends have been flat since 2023; it still feeds the DDM stage 1 and criteria 5 and 6. Consider a recent-growth check. (The criterion 8 payout guard is built, 2026-11-05.)
 2. **Criterion 7 calibration:** fails KO (6 of 10 up years) and JNJ (3 of 10) on noisy GAAP EPS; JNJ has back-to-back one-off years the one-off rule handles awkwardly.
 3. **Coverage cutoff:** revisit the 70% minimum once the cache is full (about 14 applicable criteria now, not 8).
 4. **I/B/E/S in criterion 15** is also LSEG data, with some overlap with the ESS in 13; drop it from 15 if a stricter split is wanted.
@@ -27,8 +27,7 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 9. **Smaller items:** banks and insurers for criterion 1 (unknown now); Altman Z (dropped); SPY yield to replace the manual S&P yield; quality composite thresholds are defaults to keep calibrating; the Fidelity open checks in `../research/fidelity_screener.md` section 7; why XOM, CABO and TGLS are missing from the screener.
 
 ## Next steps (ordered)
-1. **Start here:** look at why IIPR (14% yield) ranks #11 (10/14 passes; it passes criterion 8 and fails 9, 11, 13, 15), then decide open item 1 (the criterion 8 yield-trap guard) from that. The top 50 holds only 4 yields of 8% or more, so the guard looks lower priority.
-2. Investigate the 6 EDGAR errors (BSRT, OZK, PFBC 404; GAMI, HIFS, TOWN not in the SEC ticker map).
-3. Decide open items 2 to 4 from the first full ranking (criterion 7 calibration, the 70% coverage cutoff, I/B/E/S in 15). Criteria 9 and 12 fail for most of the list and criterion 8 passes for few; check they are not too strict.
-4. Pick up an open item: the Aristocrat label, the backtest scope, banks for criterion 1, or SPY yield.
-5. Slice 4 when the holdings file exists; then the CLI and fixture tests (`../plan/PLAN.md`).
+1. **Start here:** commit the payout guard (uncommitted: `valuation.py`, `criteria.toml`, a test, three docs), then check whether a November monthly drop is due (`../guides/monthly_drop.md`).
+2. Decide open items 2 to 4 from the first full ranking (criterion 7 calibration, the 70% coverage cutoff, I/B/E/S in 15). Criteria 9 and 12 fail for most of the list and criterion 8 passes for few; check they are not too strict.
+3. Pick up an open item: the Aristocrat label, the backtest scope, banks for criterion 1, or SPY yield.
+4. Slice 4 when the holdings file exists; then the CLI and fixture tests (`../plan/PLAN.md`).
