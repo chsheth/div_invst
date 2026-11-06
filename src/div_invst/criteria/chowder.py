@@ -12,6 +12,18 @@ def chowder_tier(rec: dict, y: float, cfg: dict) -> float:
     return c["tier_low_yield"] if y < c["low_yield_cutoff"] else c["tier_default"]
 
 
+def dividend_falling(rec: dict, cfg: dict) -> bool:
+    """True when the latest annual dividend is more than `max_dividend_drop` below the year before it (cached yfinance
+    annual totals). The 5-yr CAGR can hide a reversal (CHRD, KRP) or a rebound from a cut (RCL). False when either of the
+    two latest years is missing: ambiguous years are never held against a ticker."""
+    annual = ((rec.get("cache") or {}).get("dividends") or {}).get("annual") or {}
+    if not annual:
+        return False
+    latest = max(annual)
+    prev = annual.get(latest - 1)
+    return prev is not None and annual[latest] < prev * (1 - cfg["chowder"]["max_dividend_drop"])
+
+
 @criterion(4, "High current yield")
 def high_yield(rec, cfg, ctx):
     y = dividend_yield(rec)
@@ -32,7 +44,8 @@ def chowder(rec, cfg, ctx):
     number = y + g
     tier = chowder_tier(rec, y, cfg)
     checks = {"yield_vs_sp": y >= cfg["chowder"]["min_yield_vs_sp"] * cfg["macro"]["sp_yield"],
-              "chowder_number": number >= tier, "growth_vs_inflation": g >= cfg["macro"]["inflation"]}
+              "chowder_number": number >= tier, "growth_vs_inflation": g >= cfg["macro"]["inflation"],
+              "dividend_not_falling": not dividend_falling(rec, cfg)}
     return make(5, PASS if all(checks.values()) else FAIL, number, tier=tier, growth=g, **checks)
 
 
@@ -56,4 +69,5 @@ def acn(rec, cfg, ctx):
     if value is None:
         return make(6, UNKNOWN, **terms)
     tier = chowder_tier(rec, y, cfg)
-    return make(6, PASS if value >= tier else FAIL, value, tier=tier, **terms)
+    falling = dividend_falling(rec, cfg)
+    return make(6, PASS if value >= tier and not falling else FAIL, value, tier=tier, dividend_not_falling=not falling, **terms)

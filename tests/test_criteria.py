@@ -198,6 +198,24 @@ class FundamentalsCriteriaTest(unittest.TestCase):
         self.assertEqual((res.status, res.detail["pe_below_history"]), (FAIL, False))
 
 
+class FallingDividendTest(unittest.TestCase):
+    def rec(self, annual):
+        return fund("Industrials", forward_yield=0.04, dividends={"cagr5": 0.10, "annual": annual},
+                    screener={"div_yield": 0.04, "dgr_5y": 0.10, "eps_growth_5y": 0.10, "revenue_growth_5y": 0.10})
+
+    def test_a_falling_latest_year_fails_criteria_5_and_6(self):
+        res = evaluate(self.rec({2023: 5.0, 2024: 10.0, 2025: 5.0}), CFG)
+        self.assertEqual((res[5].status, res[5].detail["dividend_not_falling"]), (FAIL, False))
+        self.assertEqual(res[6].status, FAIL)
+        res = evaluate(self.rec({2023: 5.0, 2024: 5.5, 2025: 6.0}), CFG)
+        self.assertEqual((res[5].status, res[6].status), (PASS, PASS))
+
+    def test_rounding_noise_and_missing_years_are_not_held_against_a_ticker(self):
+        self.assertEqual(evaluate(self.rec({2024: 2.00, 2025: 1.99}), CFG)[5].status, PASS)   # -0.5%, inside the 1% tolerance
+        self.assertEqual(evaluate(self.rec({2022: 4.0, 2025: 2.0}), CFG)[5].status, PASS)     # 2024 missing: undecidable
+        self.assertEqual(evaluate(self.rec({}), CFG)[5].status, PASS)
+
+
 class FairValueTest(unittest.TestCase):
     def rec(self, price=100.0, dividend=3.0, cagr=0.06, eps=(4.0, 5.0, 6.0), pe=15.0, sector="Industrials"):
         return fund(sector, price=price, forward_yield=dividend / price, dividends={"cagr5": cagr},

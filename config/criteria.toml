@@ -19,6 +19,7 @@ tier_utility_telecom = 0.08
 low_yield_cutoff = 0.03
 acn_yield_cap = 0.10
 acn_growth_cap = 0.15
+max_dividend_drop = 0.01  # criteria 5 and 6 fail when the latest annual dividend is more than this below the year before (added 2026-11-05)
 acn_min_terms = 2         # of D, E, R that must be available
 
 [valuation]               # criterion 9
