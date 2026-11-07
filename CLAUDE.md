@@ -15,6 +15,7 @@ indexes every document and its conventions.
 - `src/div_invst/data/`: the SQLite snapshot cache (`store.py`), fetchers (`yahoo.py`, `finnhub.py`, `edgar.py`, `fred.py`), `refresh.py`, and `readers.py` (builds `rec["cache"]`, macro inputs).
 - `src/div_invst/criteria/`: one function per criterion, registered with `@criterion`; `engine.py` ranks.
 - `config/criteria.toml`: all thresholds and macro inputs. Change numbers there, not in code.
+- `notebooks/monthly_run.ipynb`: the monthly flow as one cell per step, parameterised by month (keep it free of saved outputs; it calls the scripts, so new script options belong there too).
 - Reports go to `data/reports/<month>/` (gitignored).
 
 ## Rules

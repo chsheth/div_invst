@@ -7,6 +7,7 @@
   uv run --python 3.13 scripts/run_screen.py              # the top 50 (`ranking.top_n` in the config) -> top50.csv, top50.md
   uv run --python 3.13 scripts/run_screen.py --top 200    # the top 200 -> ranked.csv, ranked.md
   uv run --python 3.13 scripts/run_screen.py --top 0      # every ranked stock, then the low-coverage ones unranked (rank "-")
+  uv run --python 3.13 scripts/run_screen.py --month 2026-10   # a month other than the newest
 """
 import argparse
 import csv
@@ -18,19 +19,20 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from div_invst.criteria import REGISTRY, load_config, rank, screen, unranked  # noqa: E402
 from div_invst.data import DEFAULT_DB, Store, apply_macro, attach, read_macro  # noqa: E402
-from div_invst.reference import build_dataset, latest_month_dir  # noqa: E402
+from div_invst.reference import REFERENCE_DIR, build_dataset, latest_month_dir  # noqa: E402
 
 SYMBOL = {"pass": "Y", "fail": "n", "unknown": "?", "na": "-"}
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--month", help="YYYY-MM folder under docs/reference (default: newest)")
     ap.add_argument("--top", type=int, metavar="N", help="list N ranked stocks (0 = all, then the low-coverage ones unranked) "
                     "and write ranked.csv / ranked.md instead of top50.*")
     args = ap.parse_args()
     if args.top is not None and args.top < 0:
         ap.error("--top must be 0 or more")
-    month = latest_month_dir()
+    month = REFERENCE_DIR / args.month if args.month else latest_month_dir()
     cfg = load_config()
     dataset = build_dataset(month)
     if DEFAULT_DB.exists():  # cached data layer: FRED replaces the manual Treasury and CPI inputs, snapshots attach as rec["cache"]

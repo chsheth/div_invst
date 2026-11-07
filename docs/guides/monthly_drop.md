@@ -2,7 +2,7 @@
 
 Do this once a month. Everything lands in one folder, `docs/reference/<YYYY-MM>/`, where `<YYYY-MM>` is the month the lists are published (the data inside is as of the prior month-end). The folder is gitignored because the files are licensed vendor material. If you skip a month, the loaders fall back to the latest earlier folder and mark the data stale.
 
-Run every command from the repo root.
+Run every command from the repo root. The notebook `notebooks/monthly_run.ipynb` runs steps 1 to 6 for any month, one cell per step with its output (`uv run --with jupyter jupyter lab notebooks/monthly_run.ipynb`; set `MONTH`, and `RUN_REFRESH = True` for the slow step 5).
 
 ## 1. Create the folder
 ```

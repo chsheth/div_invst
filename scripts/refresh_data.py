@@ -8,6 +8,7 @@
   uv run --python 3.13 scripts/refresh_data.py --scope top50   # only the current top 50
   uv run --python 3.13 scripts/refresh_data.py --scope ccc     # every CCC name in US scope
   uv run --python 3.13 scripts/refresh_data.py --tickers JNJ,KO --kinds yf_info,fred
+  uv run --python 3.13 scripts/refresh_data.py --month 2026-10   # pool from that month's folder (default: newest)
 
 Only snapshots older than their max age (`[refresh]` in config/criteria.toml) are fetched, so a rerun is cheap.
 Keys are read from the environment or .env.
@@ -23,7 +24,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from div_invst.criteria import load_config, rank, screen  # noqa: E402
 from div_invst.data import Store, refresh  # noqa: E402
 from div_invst.data.refresh import FETCHERS  # noqa: E402
-from div_invst.reference import build_dataset  # noqa: E402
+from div_invst.reference import REFERENCE_DIR, build_dataset  # noqa: E402
 
 
 def load_dotenv(path: Path) -> None:
@@ -39,7 +40,7 @@ def load_dotenv(path: Path) -> None:
 def pick_tickers(args, cfg, store) -> list[str]:
     if args.tickers:
         return [t.strip().upper() for t in args.tickers.split(",") if t.strip()]
-    dataset = build_dataset()
+    dataset = build_dataset(REFERENCE_DIR / args.month if args.month else None)
     if args.scope == "ccc":
         return sorted(t for t, r in dataset.items() if r["us_scope"] and r["ccc_tier"])
     rows = screen(dataset, cfg)
@@ -53,6 +54,7 @@ def pick_tickers(args, cfg, store) -> list[str]:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--month", help="YYYY-MM folder under docs/reference that defines the pool (default: newest)")
     ap.add_argument("--scope", choices=("eligible", "top50", "ccc"), default="eligible")
     ap.add_argument("--tickers", help="comma-separated; overrides --scope")
     ap.add_argument("--kinds", help=f"comma-separated subset of: {', '.join(FETCHERS)}")

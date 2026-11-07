@@ -36,6 +36,7 @@ EDGAR_USER_AGENT=div-invst you@example.com
 ```
 
 ## Monthly routine
+The notebook `notebooks/monthly_run.ipynb` walks through every step below for any month and shows each step's output: `uv run --with jupyter jupyter lab notebooks/monthly_run.ipynb`.
 Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored), refresh the cache, run the screen. Step by step: `docs/guides/monthly_drop.md`.
 
 ## Scripts
