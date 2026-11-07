@@ -26,6 +26,10 @@ EXPORT_CAP = 1000
 
 def month_dir(month: str | None) -> Path:
     if month:
+        if not re.fullmatch(r"\d{4}-\d{2}", month):
+            sys.exit(f"--month must look like 2026-11, got {month!r}")
+        if not (REFERENCE_DIR / month).is_dir():
+            sys.exit(f"no folder {REFERENCE_DIR / month}")
         return REFERENCE_DIR / month
     return max(p for p in REFERENCE_DIR.iterdir() if re.fullmatch(r"\d{4}-\d{2}", p.name))
 

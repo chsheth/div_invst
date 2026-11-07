@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from div_invst.reference import load_schwab, same_company  # noqa: E402
+from div_invst.reference import load_schwab, month_folder, same_company  # noqa: E402
 from div_invst.reference.schwab import parse_row  # noqa: E402
 
 HEADER = ["Symbol", "Description", "CFRA Star Ranking", "Morningstar Rating", "Morningstar Fair Value Estimate",
@@ -19,6 +19,21 @@ HEADER = ["Symbol", "Description", "CFRA Star Ranking", "Morningstar Rating", "M
 def write(path, rows, header=HEADER):
     lines = [",".join(f'"{c}"' for c in header)] + [",".join(f'"{c}"' for c in r) for r in rows]
     path.write_text("﻿" + "\n".join(lines) + "\n", encoding="utf-8")
+
+
+class MonthFolderTest(unittest.TestCase):
+    def test_newest_named_missing_and_malformed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for name in ("2026-09", "2026-10", "notes"):
+                (root / name).mkdir()
+            self.assertEqual(month_folder(None, root).name, "2026-10")             # newest month folder
+            self.assertEqual(month_folder("2026-09", root).name, "2026-09")
+            with self.assertRaisesRegex(ValueError, "no folder"):
+                month_folder("2026-11", root)
+            for bad in ("2026-1", "../x", "nov"):
+                with self.assertRaisesRegex(ValueError, "must look like"):
+                    month_folder(bad, root)
 
 
 class SchwabLoaderTest(unittest.TestCase):

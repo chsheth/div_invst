@@ -15,6 +15,19 @@ def latest_month_dir(root: Path = REFERENCE_DIR, today: str | None = None) -> Pa
     return months[-1]
 
 
+def month_folder(month: str | None, root: Path = REFERENCE_DIR) -> Path:
+    """The folder for a "YYYY-MM" string, or the newest month folder when `month` is empty. Raises ValueError with a plain
+    message for a malformed name or a month with no folder, so a script can stop early instead of with a loader traceback."""
+    if not month:
+        return latest_month_dir(root)
+    if not MONTH_DIR.fullmatch(month):
+        raise ValueError(f"month must look like 2026-11, got {month!r}")
+    folder = root / month
+    if not folder.is_dir():
+        raise ValueError(f"no folder {folder}: create it and drop the month's files there (docs/guides/monthly_drop.md)")
+    return folder
+
+
 def clean(raw: str, kind: str):
     """Convert one text cell. Kinds: str, pct (6.80% -> 0.068), num, int, date ("Oct 8, 2026").
     Blank, "-", "N/A" and unparseable cells become None."""

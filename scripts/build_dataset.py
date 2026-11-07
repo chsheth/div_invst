@@ -30,7 +30,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--month", help="YYYY-MM folder under docs/reference (default: newest)")
     args = ap.parse_args()
-    folder = ref.REFERENCE_DIR / args.month if args.month else ref.latest_month_dir()
+    try:
+        folder = ref.month_folder(args.month)
+    except (ValueError, FileNotFoundError) as e:
+        ap.error(str(e))
     ds = ref.build_dataset(folder)
     out = ROOT / "data" / "dataset" / f"{folder.name}.csv"
     n = ref.write_csv(ds, out)

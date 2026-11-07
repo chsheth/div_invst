@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from div_invst.criteria import REGISTRY, load_config, rank, screen, unranked  # noqa: E402
 from div_invst.data import DEFAULT_DB, Store, apply_macro, attach, read_macro  # noqa: E402
-from div_invst.reference import REFERENCE_DIR, build_dataset, latest_month_dir  # noqa: E402
+from div_invst.reference import build_dataset, month_folder  # noqa: E402
 
 SYMBOL = {"pass": "Y", "fail": "n", "unknown": "?", "na": "-"}
 
@@ -32,7 +32,10 @@ def main() -> None:
     args = ap.parse_args()
     if args.top is not None and args.top < 0:
         ap.error("--top must be 0 or more")
-    month = REFERENCE_DIR / args.month if args.month else latest_month_dir()
+    try:
+        month = month_folder(args.month)
+    except (ValueError, FileNotFoundError) as e:
+        ap.error(str(e))
     cfg = load_config()
     dataset = build_dataset(month)
     if DEFAULT_DB.exists():  # cached data layer: FRED replaces the manual Treasury and CPI inputs, snapshots attach as rec["cache"]

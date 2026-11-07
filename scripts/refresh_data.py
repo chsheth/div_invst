@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from div_invst.criteria import load_config, rank, screen  # noqa: E402
 from div_invst.data import Store, refresh  # noqa: E402
 from div_invst.data.refresh import FETCHERS  # noqa: E402
-from div_invst.reference import REFERENCE_DIR, build_dataset  # noqa: E402
+from div_invst.reference import build_dataset, month_folder  # noqa: E402
 
 
 def load_dotenv(path: Path) -> None:
@@ -40,7 +40,7 @@ def load_dotenv(path: Path) -> None:
 def pick_tickers(args, cfg, store) -> list[str]:
     if args.tickers:
         return [t.strip().upper() for t in args.tickers.split(",") if t.strip()]
-    dataset = build_dataset(REFERENCE_DIR / args.month if args.month else None)
+    dataset = build_dataset(args.folder)
     if args.scope == "ccc":
         return sorted(t for t, r in dataset.items() if r["us_scope"] and r["ccc_tier"])
     rows = screen(dataset, cfg)
@@ -59,6 +59,10 @@ def main() -> None:
     ap.add_argument("--tickers", help="comma-separated; overrides --scope")
     ap.add_argument("--kinds", help=f"comma-separated subset of: {', '.join(FETCHERS)}")
     args = ap.parse_args()
+    try:
+        args.folder = month_folder(args.month)
+    except (ValueError, FileNotFoundError) as e:
+        ap.error(str(e))
     load_dotenv(ROOT / ".env")
     cfg = load_config()
     kinds = [k.strip() for k in args.kinds.split(",")] if args.kinds else None

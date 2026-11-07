@@ -10,14 +10,14 @@ dataset.py      all of the above             -> combined per-ticker dataset
 """
 from .argus import load_argus
 from .ccc import DRIP_COLUMNS, DRIP_TIER_YEARS, load_drip, load_universe
-from .common import MONTH_DIR, REFERENCE_DIR, latest_month_dir
+from .common import MONTH_DIR, REFERENCE_DIR, latest_month_dir, month_folder
 from .dataset import build_dataset, flatten, write_csv
 from .morningstar import load_morningstar, load_pick_list
 from .schwab import load_schwab, same_company
 from .screener import load_screener
 
 __all__ = [
-    "DRIP_COLUMNS", "DRIP_TIER_YEARS", "MONTH_DIR", "REFERENCE_DIR", "build_dataset", "flatten", "latest_month_dir",
+    "DRIP_COLUMNS", "DRIP_TIER_YEARS", "MONTH_DIR", "REFERENCE_DIR", "build_dataset", "flatten", "latest_month_dir", "month_folder",
     "load_argus", "load_drip", "load_morningstar", "load_pick_list", "load_schwab", "load_screener", "load_universe",
     "same_company", "write_csv",
 ]
