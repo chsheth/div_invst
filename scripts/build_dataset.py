@@ -2,12 +2,12 @@
 # requires-python = ">=3.12"
 # dependencies = ["openpyxl", "pymupdf"]
 # ///
-"""Build the combined monthly dataset (one row per ticker across DRIP, Fidelity screener, Morningstar and Argus).
+"""Build the combined monthly dataset (one row per ticker across DRIP, Fidelity screener, Morningstar, Argus and the Schwab export).
 
 Run from the repo root:
   uv run --python 3.13 scripts/build_dataset.py [--month 2026-10]
 
-Writes data/dataset/<month>.csv (flat columns prefixed drip_, scr_, ms_, argus_; data/ is gitignored) and prints a join
+Writes data/dataset/<month>.csv (flat columns prefixed drip_, scr_, ms_, argus_, sw_; data/ is gitignored) and prints a join
 summary: how many tickers each source has, overlaps, tickers that did not join the screener, and how complete the key
 fields are for CCC names. Source file layouts: docs/guides/monthly_drop.md.
 """
@@ -22,7 +22,8 @@ from div_invst import reference as ref  # noqa: E402
 KEY_FIELDS = [("scr_div_yield", "yield"), ("scr_dgr_5y", "5-yr dividend growth"), ("scr_eps_growth_5y", "5-yr EPS growth"),
               ("scr_revenue_growth_5y", "5-yr revenue growth"), ("scr_interest_coverage", "interest coverage"),
               ("scr_debt_to_capital", "debt to capital"), ("scr_ess", "StarMine ESS"), ("scr_msci_g", "MSCI governance"),
-              ("scr_roi", "ROI"), ("scr_sga_to_sales", "SG&A / sales"), ("scr_pe", "P/E"), ("scr_pb", "P/B")]
+              ("scr_roi", "ROI"), ("scr_sga_to_sales", "SG&A / sales"), ("scr_pe", "P/E"), ("scr_pb", "P/B"),
+              ("sw_cfra_stars", "CFRA stars"), ("sw_ms_fair_value", "Morningstar fair value")]
 
 
 def main():
@@ -45,6 +46,8 @@ def main():
     for src in ("morningstar", "argus"):
         miss = sorted(r["ticker"] for r in recs if r["in"][src] and not r["in"]["screener"])
         print(f"  {src} tickers not in the screener ({len(miss)}): {', '.join(miss) or 'none'}")
+    bad = sorted(r["ticker"] for r in recs if r["schwab_mismatch"])
+    print(f"  Schwab records ignored, description names another company ({len(bad)}): {', '.join(bad) or 'none'}")
     miss = sorted(r["ticker"] for r in ccc if not r["in"]["screener"])
     print(f"  CCC names not in the screener ({len(miss)}): {', '.join(miss) or 'none'}")
 

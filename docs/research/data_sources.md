@@ -2,7 +2,7 @@
 
 What each source can and cannot supply, and how it is used. The verdicts come from the 2026-10-18 four-ticker draft and the 2026-10-19
 coverage spike (`coverage_spike_2026-10-19.md`, 21 tickers; it wins where they differ). Which source feeds which criterion is the
-Inputs column of `../criteria/ideas_v2.md`. The Fidelity screener download is documented in `fidelity_screener.md`.
+Inputs column of `../criteria/ideas_v2.md`. The Fidelity screener download is documented in `fidelity_screener.md`, the Schwab one in `schwab_screener.md`.
 
 ## Current status of each source (2026-10-26)
 | Source | Use | Status |
@@ -11,8 +11,9 @@ Inputs column of `../criteria/ideas_v2.md`. The Fidelity screener download is do
 | Finnhub free | annual series back to 1985 (EPS, ROE, ROIC, P/E, FCF margin, EBITDA), insider transactions with codes | **Used** (primary history source; price targets and dividends are premium) |
 | SEC EDGAR | annual facts through tag chains (banks' EPS, cash, dividends paid, REIT FFO inputs) | **Used** (CIK override for XOM; split-adjusted at read time; Form 4 parsing not needed) |
 | FRED CSV | 10-yr Treasury, CPI | **Used** (replaces the manual config inputs; the S&P yield is still manual) |
-| DRIP Investing "All CCC" export | CCC universe and streak band | **Used** (emailed, manual monthly drop) |
+| DRIP Investing (dripinvesting.org) "All CCC" export | CCC universe and streak band | **Used** (emailed, manual monthly drop) |
 | Fidelity stock screener | StarMine ESS, interest coverage, growth rates, quality fields | **Used** (manual monthly drop in yield bands) |
+| Schwab stock screener | CFRA stars (vote), Morningstar fair value (cross-check) | **Used** (manual monthly drop in yield bands; `schwab_screener.md`) |
 | Morningstar pick lists, Argus Top 30 | fair value, rating, moat; financial strength grade | **Used** (manual monthly PDFs, optional) |
 | Dividend Vision | CCC streak years | **Dropped** 2026-10-25 (terms prohibit automated extraction) |
 | Financial Modeling Prep, Alpha Vantage | history | **Tested, dropped** (5-year cap and partial symbols; 25 calls a day) |

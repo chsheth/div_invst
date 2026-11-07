@@ -8,7 +8,7 @@ indexes every document and its conventions.
 ## Commands
 - `uv run --python 3.13 scripts/<name>.py`: scripts carry PEP 723 dependency headers (see README "Scripts").
 - `uv run python -m unittest discover -s tests`: unit tests (stdlib unittest, no pandas dependency).
-- Monthly flow: `docs/guides/monthly_drop.md` (merge_screener, check_month, build_dataset, refresh_data, run_screen).
+- Monthly flow: `docs/guides/monthly_drop.md` (merge_screener, merge_schwab, check_month, build_dataset, refresh_data, run_screen).
 
 ## Code map
 - `src/div_invst/reference/`: loaders for the monthly files in `docs/reference/<YYYY-MM>/` and the combined per-ticker dataset.

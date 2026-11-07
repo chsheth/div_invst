@@ -1,6 +1,6 @@
 # Coverage spike results (2026-10-19)
 
-Script: `scripts/coverage_spike.py`. Raw output (gitignored): `data/spike_out/report.md`, `results.json`.
+Script `scripts/coverage_spike.py` and its raw output were removed after this record was written (script in git history).
 Tickers (21): JNJ KO PG MCD ABBV XOM CVX MMM CAT MSFT AAPL T MO O PLD NEE DUK ED JPM USB WMB. Python 3.13.9, yfinance 1.7.0 (also imports and returns data on 3.14.0).
 
 ## Verdict per source
@@ -19,7 +19,7 @@ Tickers (21): JNJ KO PG MCD ABBV XOM CVX MMM CAT MSFT AAPL T MO O PLD NEE DUK ED
 
 1. **Finnhub annual series replace most of the EDGAR tag work for the history-based criteria.** EPS history for criterion 7 (7 of 10 years), ROE/ROIC trend and payout history for criterion 10, and historical P/E for the P/E-vs-history test are all in one call per ticker. Keep EDGAR for audit and gaps. Caveat: Finnhub series are derived values; spot-check them against EDGAR for a few tickers before trusting them.
 2. **ticker-to-CIK mapping can break after a corporate reorganization.** `company_tickers.json` now maps XOM to a new entity, ExxonMobil Holdings Corp (CIK 2115436), whose facts have no history, so all 10 XOM EDGAR fields came back empty. The old CIK is 34088 (EPS 2025 = 6.70). **Fixed in the script:** `CIK_OVERRIDES` maps XOM to 34088 (XOM now returns 11-12 years), and a warning prints when a CIK has no 10-K facts.
-3. **EDGAR tag gaps: closed by extending the chains** (in `EDGAR_FIELDS`, `scripts/coverage_spike.py`). Found by listing every us-gaap tag with 8+ annual values per ticker and picking what each company actually uses. Before to after, years of data:
+3. **EDGAR tag gaps: closed by extending the chains** (now `FIELDS` in `src/div_invst/data/edgar.py`). Found by listing every us-gaap tag with 8+ annual values per ticker and picking what each company actually uses. Before to after, years of data:
    - long_term_debt: ABBV 7 to 12, XOM 4 to 12, T 7 to 12, O 3 to 11, JPM 0 to 12, WMB 0 to 12, KO, CVX, USB up to 12. New tags: `LongTermDebtAndCapitalLeaseObligations` (ABBV), `...IncludingCurrentMaturities` (JPM), `NotesPayable` (O), plus `LongTermNotesPayable`, `SeniorNotes`, `UnsecuredDebt`.
    - dividends_paid: JNJ 0 to 12 (`PaymentsOfOrdinaryDividends`), DUK 9 to 12. Chain now prefers common-stock-only tags before the generic `PaymentsOfDividends`, which can include preferred.
    - cash: USB 7 to 12, JPM and CAT 11 to 12 (`CashAndDueFromBanks`, `CashCashEquivalentsAndShortTermInvestments`, `Cash`).
@@ -39,7 +39,7 @@ Tickers (21): JNJ KO PG MCD ABBV XOM CVX MMM CAT MSFT AAPL T MO O PLD NEE DUK ED
 - Criterion 13 proxy: yfinance price targets, recommendations, estimate revisions.
 - FMP and Alpha Vantage: not used.
 
-## Finnhub vs EDGAR spot-check (JNJ, KO; `scripts/finnhub_vs_edgar.py`)
+## Finnhub vs EDGAR spot-check (JNJ, KO; `finnhub_vs_edgar.py`, since removed)
 
 - **EPS:** 20 of 20 years (2016-2025) within 0.7% of EDGAR diluted EPS. Finnhub reports GAAP EPS, not adjusted: it includes one-offs such as JNJ 2017 (0.47, tax reform) and 2023 (13.73, Kenvue gain), and KO 2017 (0.29). The earnings-up-7-of-10-years test will see those spikes and dips.
 - **ROE:** Finnhub = net income / ending equity, exactly (JNJ 2025 32.9%, KO 2025 40.7%). Series are fractions, not percents.

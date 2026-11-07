@@ -36,6 +36,8 @@ agreement_min_sources = 3
 agreement_pass = 0.25
 ibes_buy_at_most = 2.0
 ibes_sell_at_least = 3.0
+cfra_buy_at_least = 4     # CFRA stars: this or more votes +1, this or fewer (next line) votes -1; added 2026-11-06
+cfra_sell_at_most = 2
 
 [fair_value]              # criterion 8
 equity_premium = 0.035    # required return = 10-yr Treasury + this (3.5% chosen 2026-10-26: reasonable but exclusive)

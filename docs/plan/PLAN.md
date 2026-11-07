@@ -8,12 +8,12 @@ Aggregate dividend stock data and history, screen it against the criteria, and o
 pass/fail and (b) an exit list for current holdings showing which sell trigger fired.
 
 ## Design
-- **Data:** free sources first (yfinance, Finnhub free tier, SEC EDGAR, FRED); paid only if inadequate. Monthly manual drops supply what has no API (CCC universe, Fidelity screener, Morningstar and Argus PDFs): `../guides/monthly_drop.md`.
+- **Data:** free sources first (yfinance, Finnhub free tier, SEC EDGAR, FRED); paid only if inadequate. Monthly manual drops supply what has no API (CCC universe, Fidelity and Schwab screeners, Morningstar and Argus PDFs): `../guides/monthly_drop.md`.
 - **Flow:** `reference/` loaders build one record per ticker (`dataset.py`), the data layer adds `rec["cache"]` from the SQLite cache (`data/readers.py`), `criteria/` evaluates (one function per criterion, `@criterion`), `engine.py` ranks, `scripts/run_screen.py` writes `data/reports/<month>/top50.{csv,md}`.
 - **Config:** every threshold and macro input is in `config/criteria.toml`. Criteria return pass / fail / unknown / na; missing data is unknown, never a fail.
 - **Cache:** append-only SQLite (`data/cache/div_invst.sqlite`) of timestamped snapshots, refreshed by `scripts/refresh_data.py` with a max age per data kind (`[refresh]` in the config; cadence rationale in `../research/data_sources.md`).
 - **Run mode:** on-demand CLI writing CSV and Markdown reports. Holdings come from an Excel or CSV file (ticker required, shares optional, no cost basis); without one the entry list runs with the diversification cut skipped and no exit report.
-- **Tech:** Python >= 3.12 pinned to 3.13, managed with `uv`; keys in `.env` (gitignored): `FINNHUB_API_KEY`, `EDGAR_USER_AGENT` (and `FMP_API_KEY`, `ALPHAVANTAGE_API_KEY`, read only by the spike script).
+- **Tech:** Python >= 3.12 pinned to 3.13, managed with `uv`; keys in `.env` (gitignored): `FINNHUB_API_KEY`, `EDGAR_USER_AGENT`.
 
 ## Build slices
 **Done: data spikes** (coverage 2026-10-19, revisions 2026-10-21) and **monthly reference loaders** (DRIP, Morningstar, Argus, screener merge, folder check, monthly guide; 2026-10-25).
@@ -30,4 +30,4 @@ pass/fail and (b) an exit list for current holdings showing which sell trigger f
 - `uv run python -m unittest discover -s tests` (stdlib unittest, no pandas).
 - `uv run --python 3.13 scripts/run_screen.py`, then spot-check known names (KO, JNJ, PG, O) against `../research/fidelity_screener.md` section 6.
 - Once the cache is full: recheck coverage, the number of rankable tickers, and whether yield traps reach the top 50.
-- The spikes reproduce from cached responses: `scripts/coverage_spike.py`, `scripts/revision_spike.py`, `scripts/finnhub_vs_edgar.py`.
+- The spike scripts (`coverage_spike.py`, `revision_spike.py`, `finnhub_vs_edgar.py`) were removed after their findings were recorded; they are in git history.

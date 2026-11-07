@@ -19,7 +19,7 @@ CHANGES = {"Upgrade": "upgrade", "Downgrade": "downgrade", "Addition": "addition
 
 ROW = re.compile(
     r"^(?P<flag>Upgrade|Downgrade|Addition)?(?P<company>\S.*?)\s{2,}(?P<ticker>[A-Z][A-Z.\-]*)\s+(?P<industry>.+?)\s+"
-    r"(?P<exchange>X\w+)\\(?P<currency>[A-Z]{3})\s+(?P<mcap>\d+)\s+(?P<stars>\d)\s*(?:Stars?)?\s+(?P<moat>Wide|Narrow|None)\s+"
+    r"(?P<exchange>X\w+)\\(?P<currency>[A-Z]{3})\s+(?P<mcap>\d+(?:\.\d+)?)\s+(?P<stars>\d)\s*(?:Stars?)?\s+(?P<moat>Wide|Narrow|None)\s+"
     r"(?P<uncertainty>Very High|Extreme|High|Medium|Low)\s+(?P<fv>[\d,.]+)\s+(?P<price>[\d,.]+)\s+(?P<ratio>[\d.]+)\s*$")
 LOOKS_LIKE_ROW = re.compile(r"\\[A-Z]{3}\s+\d")
 
@@ -50,7 +50,7 @@ def parse_pick_list(pages: list[str], cap: str) -> tuple[date | None, list[dict]
             rows.append({
                 "ticker": m["ticker"], "company": m["company"].strip(), "cap": cap, "status": status, "sector": sector,
                 "industry": m["industry"].strip(), "exchange": m["exchange"], "currency": m["currency"],
-                "market_cap_m": int(m["mcap"]), "star_rating": int(m["stars"]), "moat": m["moat"].lower(),
+                "market_cap_m": round(float(m["mcap"])), "star_rating": int(m["stars"]), "moat": m["moat"].lower(),
                 "uncertainty": m["uncertainty"].lower(), "fair_value": fv, "price": price,
                 "price_to_fv": number(m["ratio"]), "change": CHANGES.get(m["flag"] or ""),
             })

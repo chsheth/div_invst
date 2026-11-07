@@ -42,7 +42,9 @@ def starmine(rec, cfg, ctx):
 
 
 def _votes(rec: dict, cfg: dict) -> dict:
-    """+1 / 0 / -1 per available third-party rating. StarMine ESS is left out: criterion 13 already uses it."""
+    """+1 / 0 / -1 per available third-party rating. StarMine ESS is left out: criterion 13 already uses it.
+    CFRA stars come from the Schwab export; Morningstar votes only for pick-list names (its stars measure cheapness, so they
+    often disagree with the other raters)."""
     q = cfg["quality"]
     votes = {}
     table = {"jefferson": {"Buy": 1, "Hold": 0, "Sell": -1}, "zacks": {"OUTPERFORM": 1, "NEUTRAL": 0, "UNDERPERFORM": -1},
@@ -54,6 +56,9 @@ def _votes(rec: dict, cfg: dict) -> dict:
     ibes = src(rec, "screener", "ibes_mean")
     if ibes is not None:
         votes["ibes"] = 1 if ibes <= q["ibes_buy_at_most"] else -1 if ibes >= q["ibes_sell_at_least"] else 0
+    cfra = src(rec, "schwab", "cfra_stars")
+    if cfra is not None:
+        votes["cfra"] = 1 if cfra >= q["cfra_buy_at_least"] else -1 if cfra <= q["cfra_sell_at_most"] else 0
     ms = rec.get("morningstar")
     stars = ms.get("star_rating") if ms and ms.get("status") == "pick" else None
     if stars is not None:

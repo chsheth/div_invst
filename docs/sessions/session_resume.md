@@ -1,6 +1,6 @@
 # Session resume
 
-_Last updated: 2026-11-05 (session 8)_. Live state only: open items and next steps. History is `session_log.md`; the criteria and thresholds
+_Last updated: 2026-11-06 (session 9)_. Live state only: open items and next steps. History is `session_log.md`; the criteria and thresholds
 are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decisions_log.md`; the build status per slice is `../plan/PLAN.md`.
 
 ## How to resume
@@ -9,10 +9,10 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 3. Monthly files: `../guides/monthly_drop.md`. Source behaviour: `../research/data_sources.md`.
 
 ## State
-- All 15 criteria are implemented (14 is na without holdings); 35 unit tests pass. Criteria 1, 7, 8, 10, 11, 12 and the revision proxy read the SQLite cache, so they are unknown until a ticker's data is cached.
-- Last commit `d473ba2` on `main`, pushed.
+- All 15 criteria are implemented (14 is na without holdings); 41 unit tests pass. Criteria 1, 7, 8, 10, 11, 12 and the revision proxy read the SQLite cache, so they are unknown until a ticker's data is cached.
+- Last commit `2ad13e3` on `main`, pushed. Uncommitted since: the spike scripts removed, the Morningstar parser fix, the Schwab loader and its criteria and docs (2026-11-06).
+- November drop (2026-11-06): `docs/reference/2026-11/` holds `drip_ccc.csv`, `screener_results.xlsx` (2,882 stocks, eight bands), `morningstar_mid_cap.pdf`, `schwab_results.csv` (3,666 stocks, six bands); `build_dataset` and `run_screen` ran on it, `refresh_data` has not (the cache is still October's). Missing: the Morningstar large cap list (the file received was October's again, byte for byte) and the Argus Top 30 (none of the `ar_1106_*.pdf` files is the Portfolio Selector). The unused commentary PDFs received with the drop were deleted.
 - First full fetch finished 2026-10-26: 1,354 tickers cached; the 6 EDGAR errors (BSRT, OZK, PFBC, GAMI, HIFS, TOWN) are tickers with no SEC 10-K filings; `NO_SEC_FILINGS` in `edgar.py` stores an empty record for them (2026-11-05), so criteria 7's EDGAR fallback and 11 stay unknown for them.
-- Uncommitted: the I/B/E/S decision (decisions log, open item 4) and this file.
 - First full screen (2026-10-26): 1,679 screened, 1,333 with enough coverage to rank; top 50 are 8 to 11 of 13-14 applicable. Yield traps no longer dominate: IIPR (14.0%, #11), KRP (#14), INSW (18.2%, #37) and VRTS (#39) are the only 8%+ yields in the top 50.
 
 ## Open items
@@ -23,10 +23,11 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 5. **Aristocrat label:** needs an S&P 500 constituent list (not in our data). Plan: fetch it automatically (the Wikipedia "List of S&P 500 companies" table through the MediaWiki API, with a User-Agent) with a manual `sp500.csv` override; Aristocrat = S&P 500 and band Champion or King. User chose to look for an automatic source; nothing is built.
 6. **Backtest:** asked how, deferred. The monthly vendor files exist only for 2026-10, so the options are a forward test from now (store each month's list and score later returns) or a historical rebuild from free sources for the reconstructable criteria only. Scope and metrics unanswered.
 7. **Holdings file:** the user has none, so criterion 14 and the exit report (Slice 4) wait.
-8. **Equity units and odd tickers:** NEE/PS, NEE/PT, NEE/PV (NEE equity units) get NEE common-stock EDGAR data under their own ticker, which would mislead EPS-based criteria; consider excluding preferred and unit tickers from the universe. BRK.B pays no dividend.
-9. **Smaller items:** banks and insurers for criterion 1 (unknown now); Altman Z (dropped); SPY yield to replace the manual S&P yield; quality composite thresholds are defaults to keep calibrating; the Fidelity open checks in `../research/fidelity_screener.md` section 7; why XOM, CABO and TGLS are missing from the screener.
+8. **CFRA vote (added 2026-11-06):** it swapped 7 of the 2026-11 top 50 against the same data without it and has no outcome evidence yet; judge it in the backtest (item 6). Morningstar fair value from Schwab covers 46% of CCC names and is a cross-check only.
+9. **Equity units and odd tickers:** NEE/PS, NEE/PT, NEE/PV (NEE equity units) get NEE common-stock EDGAR data under their own ticker, which would mislead EPS-based criteria; consider excluding preferred and unit tickers from the universe. BRK.B pays no dividend.
+10. **Smaller items:** banks and insurers for criterion 1 (unknown now); Altman Z (dropped); SPY yield to replace the manual S&P yield; quality composite thresholds are defaults to keep calibrating; the Fidelity open checks in `../research/fidelity_screener.md` section 7; why XOM, CABO and TGLS are missing from the screener.
 
 ## Next steps (ordered)
-1. **Start here:** the November monthly drop (`../guides/monthly_drop.md`): the user downloads the DRIP and Fidelity files into `docs/reference/2026-11/`, then check_month, build_dataset, refresh_data and run_screen. It also gives the second month for a forward backtest.
+1. **Start here:** finish the November drop (`../guides/monthly_drop.md`): get the Morningstar large cap list and the Argus Top 30 if wanted, run `refresh_data`, then `run_screen`. It also gives the second month for a forward backtest.
 2. Pick up an open item: the Aristocrat label, the backtest scope, banks for criterion 1, or SPY yield.
 3. Slice 4 when the holdings file exists; then the CLI and fixture tests (`../plan/PLAN.md`).

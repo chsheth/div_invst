@@ -75,15 +75,26 @@ def fair_values(rec: dict, cfg: dict) -> dict:
     return out
 
 
+def morningstar_check(rec: dict, price) -> tuple[dict, list]:
+    """Morningstar's fair value (the Schwab export, else the pick-list PDF) beside the price: detail fields and a flag when
+    it sits below the price. A cross-check only; it never changes pass or fail."""
+    fair = first(src(rec, "schwab", "ms_fair_value"), src(rec, "morningstar", "fair_value"))
+    if not fair or not price:
+        return {}, []
+    discount = 1 - price / fair
+    return {"ms_fair": fair, "ms_discount": round(discount, 3)}, ["Morningstar fair value below price"] if discount < 0 else []
+
+
 @criterion(8, "Discount to fair value")
 def fair_value_discount(rec, cfg, ctx):
     c = cfg["fair_value"]
     fv = fair_values(rec, cfg)
     found = {k: v for k, v in fv.items() if k in ("ddm", "pe") and v}
+    ms, ms_flags = morningstar_check(rec, fv["price"])
     if not fv["price"] or not found:
-        return make(8, UNKNOWN, **{k: v for k, v in fv.items() if v})
+        return make(8, UNKNOWN, **{k: v for k, v in fv.items() if v}, **ms)
     fair = min(found.values())
     discount = 1 - fv["price"] / fair
-    flags = [] if len(found) == 2 else [f"{next(iter(found))} estimate only"]
+    flags = ([] if len(found) == 2 else [f"{next(iter(found))} estimate only"]) + ms_flags
     return make(8, PASS if discount >= c["min_discount"] else FAIL, discount, flags, fair=round(fair, 2), price=fv["price"],
-                ddm=found.get("ddm"), pe=found.get("pe"))
+                ddm=found.get("ddm"), pe=found.get("pe"), **ms)

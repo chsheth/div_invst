@@ -1,6 +1,6 @@
 # Revision data spike results (2026-10-21)
 
-Script: `scripts/revision_spike.py`. Raw output (gitignored): `data/revision_out/report.md`, `results.json`, daily snapshots in `data/revision_out/snapshots/`.
+Script `scripts/revision_spike.py` and its raw output were removed after this record was written (script in git history).
 Tickers (21): same as the coverage spike. Purpose: can free sources supply a StarMine-style analyst-revision proxy for criterion 13?
 
 ## Verdict

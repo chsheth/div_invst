@@ -38,6 +38,12 @@ def count_argus(p):
     return f"{sum(r['in_top30'] for r in rows.values())} top 30, {sum(r['in_screen'] for r in rows.values())} screen"
 
 
+def count_schwab(p):
+    rows = ref.load_schwab(p)
+    return (f"{len(rows)} stocks, {sum(r['cfra_stars'] is not None for r in rows.values())} with CFRA stars, "
+            f"{sum(r['ms_fair_value'] is not None for r in rows.values())} with Morningstar fair value")
+
+
 def count_screener(p):
     sheets = pd.read_excel(p, sheet_name=None)
     sizes = {len(df) for df in sheets.values()}
@@ -52,6 +58,7 @@ EXPECTED = [
     ("morningstar_large_cap.pdf", False, "Morningstar pick list", count_morningstar("large")),
     ("morningstar_mid_cap.pdf", False, "Morningstar pick list", count_morningstar("mid")),
     ("argus_top30.pdf", False, "Argus Portfolio Selector", count_argus),
+    ("schwab_results.csv", False, "scripts/merge_schwab.py", count_schwab),
 ]
 
 
@@ -80,6 +87,12 @@ def main():
         print(f"  note     {len(raw)} raw screener_results*.xls file(s) present; run scripts/merge_screener.py")
     elif raw and max(f.stat().st_mtime for f in raw) > merged.stat().st_mtime:
         print("  note     a raw screener_results*.xls is newer than screener_results.xlsx; rerun scripts/merge_screener.py")
+    raw = sorted(folder.glob("Results*.csv"))
+    merged = folder / "schwab_results.csv"
+    if raw and not merged.exists():
+        print(f"  note     {len(raw)} raw Schwab Results*.csv file(s) present; run scripts/merge_schwab.py")
+    elif raw and max(f.stat().st_mtime for f in raw) > merged.stat().st_mtime:
+        print("  note     a raw Schwab Results*.csv is newer than schwab_results.csv; rerun scripts/merge_schwab.py")
     sys.exit(1 if failed else 0)
 
 

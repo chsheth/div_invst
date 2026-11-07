@@ -3,6 +3,12 @@
 History of what each session did, newest first. The live state (open items and next steps) is `session_resume.md`; the reasons behind
 decisions are in `../criteria/decisions_log.md`.
 
+## Session 9 (2026-11-06)
+- **Cleanup:** removed the three spike scripts (`coverage_spike.py`, `revision_spike.py`, `finnhub_vs_edgar.py`, ~970 lines; findings stay in `docs/research/`, scripts in git history) and the two spike output folders under `data/`; fixed stale lines in `session_resume.md`.
+- **November drop:** renamed and merged the files, found the Morningstar mid cap parser rejected decimal market caps (fixed in `reference/morningstar.py`), found the first Fidelity merge had no band under 0.5% yield (a second download closed it), found `ms_1106_1.pdf` was October's large cap list again.
+- **Schwab screener:** evaluated the Schwab export (`../research/schwab_screener.md`) after the first try hit the 1,000-row export cap. Built `reference/schwab.py`, `scripts/merge_schwab.py`, the dataset `schwab` source (enrichment only, with a company-name guard), a CFRA vote in criterion 15 and a Morningstar fair-value cross-check in criterion 8; 6 new tests. Decision: `../criteria/decisions_log.md`, 2026-11-06.
+- **Not done:** `refresh_data` for November, commits.
+
 ## Session 7 (2026-10-26)
 - **Decided and built:** StarMine double count (ESS only in 13, out of the 15 panel) and the ranking key (passes / applicable); documented how ranking works. Slice 2: SQLite snapshot store, `refresh()`, yfinance / Finnhub / EDGAR / FRED fetchers, readers (`rec["cache"]`), FRED macro in the screen, `scripts/refresh_data.py`. Slice 3: criteria 7, 11, 12, 1, 10, 8 and the revision proxy; REIT FFO proxy validated against reported FFO for O and PLD and an 85% payout cutoff set; criterion 8 tuned to a two-stage DDM with a 3.5% equity premium; median P/E history. 30 tests.
 - **Findings:** the fair-value DDM passes 197 of 1,215 cached tickers, mostly yield traps (mortgage REITs, BDCs, NHTC); criterion 7 fails KO (6 of 10 up years) and JNJ (3 of 10) on noisy GAAP EPS; the first fetch pool came out empty once criteria read the cache (fixed: screener coverage plus already-cached tickers).

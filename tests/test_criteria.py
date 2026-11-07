@@ -39,6 +39,21 @@ class CriteriaTest(unittest.TestCase):
         r = evaluate(rec(ess="Very Bullish", zacks="OUTPERFORM", mclean="Buy"), CFG)[15]
         self.assertEqual(r.status, UNKNOWN)
 
+    def test_cfra_stars_vote_in_agreement(self):
+        r = rec(zacks="OUTPERFORM", mclean="Buy")
+        r["schwab"] = {"cfra_stars": 5}
+        res = evaluate(r, CFG)[15]
+        self.assertEqual((res.status, res.detail["cfra"]), (PASS, 1))      # third vote reaches the minimum
+        r["schwab"] = {"cfra_stars": 3}
+        self.assertEqual(evaluate(r, CFG)[15].detail["cfra"], 0)
+        r = rec(zacks="OUTPERFORM", mclean="Neutral")
+        r["schwab"] = {"cfra_stars": 1}
+        res = evaluate(r, CFG)[15]
+        self.assertEqual((res.status, res.detail["cfra"]), (FAIL, -1))     # (1 + 0 - 1) / 3 = 0 is under 0.25
+        r["schwab"] = {"cfra_stars": 3}
+        r["schwab"] = {"cfra_stars": None}
+        self.assertEqual(evaluate(r, CFG)[15].status, UNKNOWN)             # no CFRA vote: only 2 votes
+
     def test_rank_penalises_missing_criteria(self):
         def row(t, passes, acn=0.1):
             # 9 applicable criteria for everyone; FEW evaluated only 3 of them but passed all 3
@@ -237,6 +252,26 @@ class FairValueTest(unittest.TestCase):
         res = evaluate(self.rec(price=fair * 0.80), CFG)[8]   # 20% below the lower value
         self.assertEqual((res.status, round(res.detail["fair"], 2)), (PASS, round(fair, 2)))
         self.assertEqual(evaluate(self.rec(price=fair * 0.95), CFG)[8].status, FAIL)
+
+    def test_morningstar_fair_value_is_a_cross_check_only(self):
+        base = evaluate(self.rec(price=60.0), CFG)[8]
+        self.assertEqual(base.status, PASS)
+        r = self.rec(price=60.0)
+        r["schwab"] = {"ms_fair_value": 50.0}
+        res = evaluate(r, CFG)[8]
+        self.assertEqual(res.status, base.status)                           # never changes pass or fail
+        self.assertEqual((res.detail["ms_fair"], res.detail["ms_discount"]), (50.0, -0.2))
+        self.assertIn("Morningstar fair value below price", res.flags)
+        r["schwab"] = {"ms_fair_value": 100.0}
+        res = evaluate(r, CFG)[8]
+        self.assertEqual((res.detail["ms_discount"], res.flags), (0.4, []))
+        r["schwab"] = {"ms_fair_value": None}
+        r["morningstar"] = {"fair_value": 80.0}                             # falls back to the pick-list PDF
+        self.assertEqual(evaluate(r, CFG)[8].detail["ms_fair"], 80.0)
+        no_cache = rec()
+        no_cache["schwab"] = {"ms_fair_value": 50.0}
+        no_cache["price"] = 40.0
+        self.assertEqual(evaluate(no_cache, CFG)[8].status, UNKNOWN)
 
     def test_reit_uses_ddm_only_and_missing_is_unknown(self):
         res = evaluate(self.rec(price=40.0, sector="Real Estate"), CFG)[8]   # dividend 3.0 on a 40 price: well below the DDM value

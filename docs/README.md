@@ -12,6 +12,7 @@ One home per topic: each fact lives in exactly one file and the others link to i
 | `research/` | `data_sources.md` | What each data source can supply, current status, refresh cadence | A source is re-tested |
 | | `coverage_spike_2026-10-19.md`, `revision_spike_2026-10-21.md` | Spike results (21 tickers): source verdicts, revision data coverage | Never (dated records) |
 | | `fidelity_screener.md` | The Fidelity screener download: layout, units, columns, fill rates, mapping to criteria | The screen changes |
+| | `schwab_screener.md` | The Schwab screener export: layout, export cap, columns used and the ones checked and dropped | The export changes |
 | | `reit_ffo_validation_2026-10-26.md` | REIT FFO proxy checked against reported FFO | Never (dated record) |
 | `sessions/` | `session_resume.md` | Live state: open items and next steps (start here) | Every session |
 | | `session_log.md` | History of each session | Every session (new entry on top) |
