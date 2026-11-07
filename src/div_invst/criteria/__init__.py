@@ -2,6 +2,6 @@
 from . import analysts, chowder, fundamentals, history, portfolio, quality, valuation  # noqa: F401  (registration)
 from .base import FAIL, NA, PASS, REGISTRY, UNKNOWN, Result
 from .config import load_config
-from .engine import evaluate, rank, screen
+from .engine import evaluate, rank, screen, unranked
 
-__all__ = ["FAIL", "NA", "PASS", "REGISTRY", "UNKNOWN", "Result", "evaluate", "load_config", "rank", "screen"]
+__all__ = ["FAIL", "NA", "PASS", "REGISTRY", "UNKNOWN", "Result", "evaluate", "load_config", "rank", "screen", "unranked"]

@@ -76,7 +76,7 @@ uv run --python 3.13 scripts/refresh_data.py --scope ccc      # CCC names only; 
 Fills `data/cache/div_invst.sqlite` from yfinance, Finnhub, EDGAR and FRED. Only snapshots older than their max age (`[refresh]` in `config/criteria.toml`) are fetched, so a rerun is cheap and an interrupted run resumes. The first full pass takes hours (Finnhub allows about one call per second); load `.env` keys first (`FINNHUB_API_KEY`, `EDGAR_USER_AGENT`). Criteria 1, 7, 8, 10, 11, 12 and the 13 fallback stay unknown for tickers that are not cached.
 
 ## 6. Run the screen
-`uv run --python 3.13 scripts/run_screen.py` writes `data/reports/<YYYY-MM>/top50.md` and `top50.csv`. The 10-yr Treasury and inflation come from the cached FRED series when the cache exists; the S&P yield is still a manual input in `config/criteria.toml` (`[macro]`): update it monthly.
+`uv run --python 3.13 scripts/run_screen.py` writes `data/reports/<YYYY-MM>/top50.md` and `top50.csv`. `--top N` lists the top N instead and `--top 0` lists every ranked stock (about 1,300) followed by the low-coverage ones unranked and flagged "low coverage"; both write `ranked.md` and `ranked.csv` and leave the top-50 files alone. The 10-yr Treasury and inflation come from the cached FRED series when the cache exists; the S&P yield is still a manual input in `config/criteria.toml` (`[macro]`): update it monthly.
 
 ## 7. Follow-up
 - Update the folder's own `README.md` if a file's source or format changed.

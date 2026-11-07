@@ -27,7 +27,7 @@ the CCC lists are not missed.
 - Applicable = every criterion except na (criterion 14 is na without a holdings file). Evaluated = pass or fail. Coverage = evaluated / applicable.
 - A ticker is ranked only with a yield, US scope and coverage >= 70% (`ranking.min_coverage`).
 - Rank key = passes / applicable (unknowns count as not passed, so a perfect score on few criteria cannot beat a strong one on many);
-  ties by ACN (criterion 6), then yield, then ticker. The report shows passes / evaluated as the score. Top 50 are kept.
+  ties by ACN (criterion 6), then yield, then ticker. The report shows passes / evaluated as the score. Top 50 are kept by default; `run_screen.py --top N` lists N, and `--top 0` lists every ranked stock followed by the low-coverage ones unranked.
 - The applicable count differs per ticker (n/a for sector skips, unknown for missing data). Coverage falls as more criteria depend on cached data; revisit the 70% cutoff once all of them are populated.
 - Target portfolio size is 30-40 stocks: a constraint, not a scored criterion. The top 50 is the candidate pool; the held portfolio is built from it with criterion 14 applied.
 

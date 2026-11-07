@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from div_invst.criteria import FAIL, NA, PASS, UNKNOWN, evaluate, load_config, rank  # noqa: E402
+from div_invst.criteria import FAIL, NA, PASS, UNKNOWN, evaluate, load_config, rank, unranked  # noqa: E402
 
 CFG = load_config()
 
@@ -61,6 +61,16 @@ class CriteriaTest(unittest.TestCase):
                     "rank_score": passes / 9, "acn": acn, "yield": 0.03}
         rows = [row("FEW", 3), row("MANY", 8), row("TIE", 8, acn=0.2)]
         self.assertEqual([x["ticker"] for x in rank(rows, CFG)], ["TIE", "MANY", "FEW"])
+
+    def test_rank_top_n_and_unranked(self):
+        def row(t, passes, coverage=1.0):
+            return {"ticker": t, "passes": passes, "applicable": 9, "evaluated": 9, "coverage": coverage, "score": 1.0,
+                    "rank_score": passes / 9, "acn": 0.1, "yield": 0.03}
+        rows = [row("A", 5), row("B", 8), row("C", 2), row("THIN", 9, coverage=0.3), row("THIN2", 4, coverage=0.5)]
+        self.assertEqual([x["ticker"] for x in rank(rows, CFG, 2)], ["B", "A"])
+        self.assertEqual([x["ticker"] for x in rank(rows, CFG, 0)], ["B", "A", "C"])      # 0 = every ranked stock
+        self.assertEqual(len(rank(rows * 20, CFG)), 50)                                    # default: ranking.top_n
+        self.assertEqual([x["ticker"] for x in unranked(rows, CFG)], ["THIN", "THIN2"])    # low coverage, same ordering
 
 
 def cached(tier=None, **cache):

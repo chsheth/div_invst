@@ -37,8 +37,19 @@ def screen(dataset: dict, cfg: dict, ctx: dict | None = None, us_only: bool = Tr
     return rows
 
 
-def rank(rows: list[dict], cfg: dict) -> list[dict]:
+def _sort_key(x: dict):
+    return (-x["rank_score"], -(x["acn"] or 0), -(x["yield"] or 0), x["ticker"])
+
+
+def rank(rows: list[dict], cfg: dict, top_n: int | None = None) -> list[dict]:
+    """The ranked stocks (coverage at or above `ranking.min_coverage`), best first. `top_n` keeps that many (default
+    `ranking.top_n` from the config); 0 keeps all of them."""
     r = cfg["ranking"]
-    eligible = [x for x in rows if x["coverage"] >= r["min_coverage"]]
-    eligible.sort(key=lambda x: (-x["rank_score"], -(x["acn"] or 0), -(x["yield"] or 0), x["ticker"]))
-    return eligible[:r["top_n"]]
+    n = r["top_n"] if top_n is None else top_n
+    eligible = sorted((x for x in rows if x["coverage"] >= r["min_coverage"]), key=_sort_key)
+    return eligible[:n] if n else eligible
+
+
+def unranked(rows: list[dict], cfg: dict) -> list[dict]:
+    """The screened stocks left out of the ranking for low coverage, in the same order the ranking would give them."""
+    return sorted((x for x in rows if x["coverage"] < cfg["ranking"]["min_coverage"]), key=_sort_key)

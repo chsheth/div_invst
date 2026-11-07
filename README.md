@@ -46,5 +46,6 @@ uv run --python 3.13 scripts/check_month.py                     # check the mont
 uv run --python 3.13 scripts/build_dataset.py                   # combined per-ticker dataset -> data/dataset/<YYYY-MM>.csv
 uv run --python 3.13 scripts/refresh_data.py                    # fill/refresh the SQLite cache (yfinance, Finnhub, EDGAR, FRED) -> data/cache/
 uv run --python 3.13 scripts/run_screen.py                      # criteria over the dataset -> data/reports/<YYYY-MM>/top50.md
+uv run --python 3.13 scripts/run_screen.py --top 0              # every ranked stock plus the low-coverage ones -> ranked.md / ranked.csv (--top N for the top N)
 uv run python -m unittest discover -s tests                    # unit tests
 ```
