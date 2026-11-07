@@ -71,14 +71,19 @@ Joins DRIP, the screener, Morningstar, Argus and Schwab into one row per ticker 
 ## 5. Refresh the market data cache
 ```
 uv run --python 3.13 scripts/refresh_data.py                  # the rankable pool plus anything already cached
-uv run --python 3.13 scripts/refresh_data.py --scope ccc      # CCC names only; --scope top50, --tickers JNJ,KO, --kinds edgar,yf_splits also work
+uv run --python 3.13 scripts/refresh_data.py --scope ccc      # CCC names only; --scope top50 (re-ranks on the cached data, so use it only after a full refresh), --tickers JNJ,KO, --kinds edgar,yf_splits also work
 ```
 Fills `data/cache/div_invst.sqlite` from yfinance, Finnhub, EDGAR and FRED. Only snapshots older than their max age (`[refresh]` in `config/criteria.toml`) are fetched, so a rerun is cheap and an interrupted run resumes. The first full pass takes hours (Finnhub allows about one call per second); load `.env` keys first (`FINNHUB_API_KEY`, `EDGAR_USER_AGENT`). Criteria 1, 7, 8, 10, 11, 12 and the 13 fallback stay unknown for tickers that are not cached.
 
 ## 6. Run the screen
 `uv run --python 3.13 scripts/run_screen.py` writes `data/reports/<YYYY-MM>/top50.md` and `top50.csv`. `--top N` lists the top N instead and `--top 0` lists every ranked stock (about 1,300) followed by the low-coverage ones unranked and flagged "low coverage"; both write `ranked.md` and `ranked.csv` and leave the top-50 files alone. The 10-yr Treasury and inflation come from the cached FRED series when the cache exists; the S&P yield is still a manual input in `config/criteria.toml` (`[macro]`): update it monthly.
 
-## 7. Follow-up
+Run it with `--top 0` every month as well, so each month has a full `ranked.csv`: the tracker (step 7) compares the top 50 with the rest of the list. `--as-of YYYY-MM-DD` reads the cache as it stood at the end of that day, which re-screens an earlier month on the data it had then (the 2026-10 `ranked.csv` was made with `--month 2026-10 --top 0 --as-of 2026-10-27`).
+
+## 7. Track the lists
+`uv run --python 3.13 scripts/track_returns.py` scores every month under `data/reports/` against what happened next and writes `data/reports/tracking.md` and `tracking.csv`: total return (adjusted close, dividends included) of the top 50, the rest of the ranked list, the unranked names and SPY at 30, 91, 182 and 365 days and to date, pass versus fail returns per criterion, and dividend cuts in the top 50. A month's list date is in `data/reports/snapshots.json` (defaults: 2026-10 is 2026-10-26, 2026-11 is 2026-11-06); record a new month with `--set 2026-12=2026-12-05`. It only reports: no threshold is tuned on a few months of returns, and meaningful results need 6 to 12 months. Run it after `refresh_data` (both use the same SQLite file). `notebooks/forward_test.ipynb` does the same for one month step by step.
+
+## 8. Follow-up
 - Update the folder's own `README.md` if a file's source or format changed.
 
 ## What each file feeds

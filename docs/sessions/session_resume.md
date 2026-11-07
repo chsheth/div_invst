@@ -1,6 +1,6 @@
 # Session resume
 
-_Last updated: 2026-11-06 (session 9)_. Live state only: open items and next steps. History is `session_log.md`; the criteria and thresholds
+_Last updated: 2026-11-07 (session 10)_. Live state only: open items and next steps. History is `session_log.md`; the criteria and thresholds
 are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decisions_log.md`; the build status per slice is `../plan/PLAN.md`.
 
 ## How to resume
@@ -10,8 +10,8 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 
 ## State
 - All 15 criteria are implemented (14 is na without holdings); 41 unit tests pass. Criteria 1, 7, 8, 10, 11, 12 and the revision proxy read the SQLite cache, so they are unknown until a ticker's data is cached.
-- Last commit `2ad13e3` on `main`, pushed. Uncommitted since: the spike scripts removed, the Morningstar parser fix, the Schwab loader and its criteria and docs (2026-11-06).
-- November drop (2026-11-06): `docs/reference/2026-11/` holds `drip_ccc.csv`, `screener_results.xlsx` (2,882 stocks, eight bands), `morningstar_mid_cap.pdf`, `schwab_results.csv` (3,666 stocks, six bands); `build_dataset` and `run_screen` ran on it, `refresh_data` has not (the cache is still October's). Missing: the Morningstar large cap list (the file received was October's again, byte for byte) and the Argus Top 30 (none of the `ar_1106_*.pdf` files is the Portfolio Selector). The unused commentary PDFs received with the drop were deleted.
+- Committed and pushed through session 10 (2026-11-07): the Schwab source, `--month` and the notebooks, the `refresh_data --scope top50` fix, `Store(as_of=...)` and `run_screen --as-of`, the forward tracker (`scripts/track_returns.py`, `notebooks/forward_test.ipynb`). `data/reports/2026-10/ranked.csv` is the full October list (rebuilt as of 2026-10-27; its top 50 equals the original).
+- November drop (2026-11-06): `docs/reference/2026-11/` holds `drip_ccc.csv`, `screener_results.xlsx` (2,882 stocks, eight bands), `morningstar_mid_cap.pdf`, `schwab_results.csv` (3,666 stocks, six bands); `build_dataset` and `run_screen` ran on it, `refresh_data` was started 2026-11-07 (check it finished: it prints "fetched n, already fresh n, errors n"), then `run_screen --top 0` and `track_returns.py` are still to run on it. Missing: the Morningstar large cap list (the file received was October's again, byte for byte) and the Argus Top 30 (none of the `ar_1106_*.pdf` files is the Portfolio Selector). The unused commentary PDFs received with the drop were deleted.
 - First full fetch finished 2026-10-26: 1,354 tickers cached; the 6 EDGAR errors (BSRT, OZK, PFBC, GAMI, HIFS, TOWN) are tickers with no SEC 10-K filings; `NO_SEC_FILINGS` in `edgar.py` stores an empty record for them (2026-11-05), so criteria 7's EDGAR fallback and 11 stay unknown for them.
 - First full screen (2026-10-26): 1,679 screened, 1,333 with enough coverage to rank; top 50 are 8 to 11 of 13-14 applicable. Yield traps no longer dominate: IIPR (14.0%, #11), KRP (#14), INSW (18.2%, #37) and VRTS (#39) are the only 8%+ yields in the top 50.
 
@@ -21,14 +21,14 @@ are `../criteria/ideas_v2.md`; the reasons behind them are `../criteria/decision
 3. **Coverage cutoff (decided 2026-11-05):** stays 70%; the top 50 is identical from 50% to 90%.
 4. **I/B/E/S in criterion 15 (decided 2026-11-05: keep):** it does not overlap with StarMine in practice (correlation 0.02) and criterion 15 needs it for coverage. Open side note: Zacks and McLean vote 0 for most tickers, diluting the net score.
 5. **Aristocrat label:** needs an S&P 500 constituent list (not in our data). Plan: fetch it automatically (the Wikipedia "List of S&P 500 companies" table through the MediaWiki API, with a User-Agent) with a manual `sp500.csv` override; Aristocrat = S&P 500 and band Champion or King. User chose to look for an automatic source; nothing is built.
-6. **Backtest:** asked how, deferred. The monthly vendor files exist only for 2026-10, so the options are a forward test from now (store each month's list and score later returns) or a historical rebuild from free sources for the reconstructable criteria only. Scope and metrics unanswered.
+6. **Backtest (decided 2026-11-07: forward tracker):** `scripts/track_returns.py` scores each month's `ranked.csv` against later total returns versus SPY (`../guides/monthly_drop.md` step 7). Built and tested (`notebooks/forward_test.ipynb` shows one month step by step); first full run waits for the November `refresh_data`. First look, October top 50 at 12 days: -1.1% against SPY -3.9% (too early to mean anything). Needs 6 to 12 months before it says anything; run `run_screen --top 0` every month so each month has a full list. A historical rebuild was rejected (decisions log 2026-11-07).
 7. **Holdings file:** the user has none, so criterion 14 and the exit report (Slice 4) wait.
-8. **CFRA vote (added 2026-11-06):** it swapped 7 of the 2026-11 top 50 against the same data without it and has no outcome evidence yet; judge it in the backtest (item 6). Morningstar fair value from Schwab covers 46% of CCC names and is a cross-check only.
+8. **CFRA vote (added 2026-11-06):** it swapped 7 of the 2026-11 top 50 against the same data without it and has no outcome evidence yet; judge it in the tracker (item 6). Morningstar fair value from Schwab covers 46% of CCC names and is a cross-check only.
 9. **Equity units and odd tickers:** NEE/PS, NEE/PT, NEE/PV (NEE equity units) get NEE common-stock EDGAR data under their own ticker, which would mislead EPS-based criteria; consider excluding preferred and unit tickers from the universe. BRK.B pays no dividend.
-10. **`refresh_data.py --scope top50` picks the wrong pool:** `pick_tickers` ranks without attaching the cache, so the cache-dependent criteria are unknown and its top 50 differs from the one `run_screen.py` reports. Fix by attaching the cache (as `run_screen.py` does) before ranking, or by reading the latest `top50.csv`. Found by the 2026-11-06 code review; the default `eligible` and `ccc` scopes are not affected.
+10. **`refresh_data.py --scope top50` (fixed 2026-11-07):** it now attaches the cache and macro before ranking, so it picks the same top 50 as `run_screen.py` (checked on 2026-11). It ranks on cached data, so it only refreshes names already cached: use it after a full refresh, not on a cold cache. A shared ranking helper for both scripts would stop the two from drifting apart.
 11. **Smaller items:** banks and insurers for criterion 1 (unknown now); Altman Z (dropped); SPY yield to replace the manual S&P yield; quality composite thresholds are defaults to keep calibrating; the Fidelity open checks in `../research/fidelity_screener.md` section 7; why XOM, CABO and TGLS are missing from the screener.
 
 ## Next steps (ordered)
-1. **Start here:** finish the November drop (`../guides/monthly_drop.md`): get the Morningstar large cap list and the Argus Top 30 if wanted, run `refresh_data`, then `run_screen`. It also gives the second month for a forward backtest.
-2. Pick up an open item: the Aristocrat label, the backtest scope, banks for criterion 1, or SPY yield.
+1. **Start here:** finish the November drop (`../guides/monthly_drop.md`): confirm `refresh_data` finished, get the Morningstar large cap list and the Argus Top 30 if wanted, run `run_screen --top 0`, then `track_returns.py`. Repeat monthly so the tracker accumulates 6 to 12 months.
+2. Pick up an open item: the Aristocrat label, banks for criterion 1, or SPY yield.
 3. Slice 4 when the holdings file exists; then the CLI and fixture tests (`../plan/PLAN.md`).

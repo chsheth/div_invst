@@ -24,6 +24,19 @@ class StoreTest(unittest.TestCase):
         self.assertIsNone(s.latest("yahoo", "yf_info", "PG"))
         self.assertEqual(s.tickers("yf_info"), {"KO"})
 
+    def test_as_of_hides_later_snapshots(self):
+        s = Store(":memory:")
+        s.put("yahoo", "yf_info", "KO", {"p": 1}, T0)
+        s.put("yahoo", "yf_info", "KO", {"p": 2}, T0 + timedelta(days=5))
+        s.put("yahoo", "yf_info", "PG", {"p": 9}, T0 + timedelta(days=5))
+        s.as_of = T0 + timedelta(days=2)
+        self.assertEqual(s.latest("yahoo", "yf_info", "KO")[1], {"p": 1})
+        self.assertEqual([p for _, p in s.history("yahoo", "yf_info", "KO")], [{"p": 1}])
+        self.assertIsNone(s.latest("yahoo", "yf_info", "PG"))
+        self.assertEqual(s.tickers("yf_info"), {"KO"})
+        s.as_of = None
+        self.assertEqual(s.latest("yahoo", "yf_info", "KO")[1], {"p": 2})
+
 
 class RefreshTest(unittest.TestCase):
     def setUp(self):

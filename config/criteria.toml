@@ -103,3 +103,4 @@ fh_insider = 1
 yf_splits = 30           # to restate EDGAR per-share history
 edgar = 7                 # annual facts change only at 10-K filing
 fred = 1
+yf_prices = 1             # adjusted closes for the return tracker (scripts/track_returns.py)

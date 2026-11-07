@@ -5,7 +5,7 @@
 """Refresh the SQLite cache (data/cache/div_invst.sqlite) from yfinance, Finnhub and FRED.
 
   uv run --python 3.13 scripts/refresh_data.py                 # the rankable pool (screener coverage) plus anything already cached
-  uv run --python 3.13 scripts/refresh_data.py --scope top50   # only the current top 50
+  uv run --python 3.13 scripts/refresh_data.py --scope top50   # only the current top 50 (needs a cache: ranks on cached data, so run the default scope first)
   uv run --python 3.13 scripts/refresh_data.py --scope ccc     # every CCC name in US scope
   uv run --python 3.13 scripts/refresh_data.py --tickers JNJ,KO --kinds yf_info,fred
   uv run --python 3.13 scripts/refresh_data.py --month 2026-10   # pool from that month's folder (default: newest)
@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from div_invst.criteria import load_config, rank, screen  # noqa: E402
-from div_invst.data import Store, refresh  # noqa: E402
+from div_invst.data import Store, apply_macro, attach, read_macro, refresh  # noqa: E402
 from div_invst.data.refresh import FETCHERS  # noqa: E402
 from div_invst.reference import build_dataset, month_folder  # noqa: E402
 
@@ -43,9 +43,11 @@ def pick_tickers(args, cfg, store) -> list[str]:
     dataset = build_dataset(args.folder)
     if args.scope == "ccc":
         return sorted(t for t, r in dataset.items() if r["us_scope"] and r["ccc_tier"])
+    if args.scope == "top50":  # rank as run_screen.py does (cache and macro attached) so this is the same top 50 it reports
+        attach(dataset, store)
+        cfg = apply_macro(cfg, read_macro(store))
+        return [r["ticker"] for r in rank(screen(dataset, cfg), cfg)]
     rows = screen(dataset, cfg)
-    if args.scope == "top50":
-        return [r["ticker"] for r in rank(rows, cfg)]
     # The pool: coverage on the screener-only criteria, plus every ticker already cached. Coverage cannot be the only
     # test: criteria that read the cache are unknown for uncached names, so a fresh cache would shrink the pool to nothing.
     floor = cfg["ranking"]["min_coverage"]

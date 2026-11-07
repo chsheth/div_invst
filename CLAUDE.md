@@ -12,10 +12,11 @@ indexes every document and its conventions.
 
 ## Code map
 - `src/div_invst/reference/`: loaders for the monthly files in `docs/reference/<YYYY-MM>/` and the combined per-ticker dataset.
-- `src/div_invst/data/`: the SQLite snapshot cache (`store.py`), fetchers (`yahoo.py`, `finnhub.py`, `edgar.py`, `fred.py`), `refresh.py`, and `readers.py` (builds `rec["cache"]`, macro inputs).
+- `src/div_invst/data/`: the SQLite snapshot cache (`store.py`), fetchers (`yahoo.py`, `finnhub.py`, `edgar.py`, `fred.py`), `refresh.py`, and `readers.py` (builds `rec["cache"]`, macro inputs). `Store(as_of=...)` reads the cache as it stood on a past day.
+- `src/div_invst/tracking.py`: pure return maths for the forward tracker (`scripts/track_returns.py`, `notebooks/forward_test.ipynb`).
 - `src/div_invst/criteria/`: one function per criterion, registered with `@criterion`; `engine.py` ranks.
 - `config/criteria.toml`: all thresholds and macro inputs. Change numbers there, not in code.
-- `notebooks/monthly_run.ipynb`: the monthly flow as one cell per step, parameterised by month (keep it free of saved outputs; it calls the scripts, so new script options belong there too).
+- `notebooks/monthly_run.ipynb`: the monthly flow as one cell per step, parameterised by month (keep it free of saved outputs; it calls the scripts, so new script options belong there too). `notebooks/forward_test.ipynb` is the forward test of one stored month, step by step (also output-free).
 - Reports go to `data/reports/<month>/` (gitignored).
 
 ## Rules

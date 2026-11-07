@@ -3,6 +3,11 @@
 History of what each session did, newest first. The live state (open items and next steps) is `session_resume.md`; the reasons behind
 decisions are in `../criteria/decisions_log.md`.
 
+## Session 10 (2026-11-07)
+- **Fix:** `refresh_data.py --scope top50` now attaches the cache and macro before ranking, so it picks the same top 50 as `run_screen.py` (checked on 2026-11); documented that it needs a filled cache. A code review of that fix raised the cold-cache limit (documented) and the duplicated ranking setup (noted in `session_resume.md`).
+- **Backtest question:** decided on a forward tracker rather than a backtest module (`../criteria/decisions_log.md`, 2026-11-07). Built `Store(as_of=...)` and `run_screen --as-of` to rebuild the October full list on the cache as of 2026-10-27 (top 50 identical to the original), `tracking.py`, `yahoo.prices`, `scripts/track_returns.py`, `notebooks/forward_test.ipynb` and a tracker step in `monthly_run.ipynb`; 54 tests.
+- **Started:** the November `refresh_data` (background). **Not done:** the first full `run_screen --top 0` and tracker run on November.
+
 ## Session 9 (2026-11-06)
 - **Cleanup:** removed the three spike scripts (`coverage_spike.py`, `revision_spike.py`, `finnhub_vs_edgar.py`, ~970 lines; findings stay in `docs/research/`, scripts in git history) and the two spike output folders under `data/`; fixed stale lines in `session_resume.md`.
 - **November drop:** renamed and merged the files, found the Morningstar mid cap parser rejected decimal market caps (fixed in `reference/morningstar.py`), found the first Fidelity merge had no band under 0.5% yield (a second download closed it), found `ms_1106_1.pdf` was October's large cap list again.

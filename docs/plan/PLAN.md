@@ -24,6 +24,7 @@ pass/fail and (b) an exit list for current holdings showing which sell trigger f
 | 2. Data layer | `data/`: `store.py` (snapshot store), `refresh.py`, fetchers `yahoo.py`, `finnhub.py`, `edgar.py`, `fred.py`, `readers.py` (`rec["cache"]`, macro); `scripts/refresh_data.py` | **Built**; first full fetch of the eligible pool in progress (EDGAR and splits still to run). Still to do: SPY yield, run snapshots tied to a report month, scheduling |
 | 3. Remaining criteria | Criteria 1, 7, 8, 10, 11, 12, the revision proxy for 13, REIT FFO payout (`criteria/history.py`, `fundamentals.py`, `valuation.py`, `analysts.py`) | **Built** (2026-10-26), unknown until the cache is populated. Still to do: banks and insurers for criterion 1, Altman Z, calibration on known tickers, criterion 8 payout guard (built 2026-11-05), exit-rule inputs |
 | 4. Holdings and exit | Holdings loader (layout from the user), diversification cut, exit report (fair-value ceiling, yield compression, fundamental break, Morningstar deletions as a note) | Not started; blocked on the holdings file |
+| 4b. Return tracker | `tracking.py` (pure return maths), `yahoo.prices`, `Store(as_of=...)`, `scripts/track_returns.py`, `run_screen --as-of` | **Built** (2026-11-07); first report after the November refresh |
 | 5. Tests and CLI | Fixture tests per criterion (unit tests exist for all built criteria), CLI in `main.py` (`--holdings`, `--month`), hand-check 3 known aristocrats | Not started |
 
 ## Verification

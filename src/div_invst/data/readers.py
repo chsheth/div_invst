@@ -238,6 +238,7 @@ def apply_macro(cfg: dict, macro: dict) -> dict:
 def attach(dataset: dict[str, dict], store: Store, today: date | None = None) -> int:
     """Set rec["cache"] on every record (None when the ticker has no snapshots); returns how many have one."""
     n = 0
+    today = today or (store.as_of.date() if store.as_of else None)  # a point-in-time store also dates the "last 6 months" windows
     for ticker, rec in dataset.items():
         rec["cache"] = read_ticker(store, ticker, today)
         n += rec["cache"] is not None

@@ -8,10 +8,12 @@
   uv run --python 3.13 scripts/run_screen.py --top 200    # the top 200 -> ranked.csv, ranked.md
   uv run --python 3.13 scripts/run_screen.py --top 0      # every ranked stock, then the low-coverage ones unranked (rank "-")
   uv run --python 3.13 scripts/run_screen.py --month 2026-10   # a month other than the newest
+  uv run --python 3.13 scripts/run_screen.py --month 2026-10 --as-of 2026-10-27 --top 0   # that month on the cache as it was then
 """
 import argparse
 import csv
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,7 +31,14 @@ def main() -> None:
     ap.add_argument("--month", help="YYYY-MM folder under docs/reference (default: newest)")
     ap.add_argument("--top", type=int, metavar="N", help="list N ranked stocks (0 = all, then the low-coverage ones unranked) "
                     "and write ranked.csv / ranked.md instead of top50.*")
+    ap.add_argument("--as-of", metavar="YYYY-MM-DD", help="read the cache as it stood at the end of this day (default: now)")
     args = ap.parse_args()
+    as_of = None
+    if args.as_of:
+        try:
+            as_of = datetime.strptime(args.as_of, "%Y-%m-%d") + timedelta(days=1) - timedelta(microseconds=1)
+        except ValueError:
+            ap.error("--as-of must be YYYY-MM-DD")
     if args.top is not None and args.top < 0:
         ap.error("--top must be 0 or more")
     try:
@@ -39,7 +48,7 @@ def main() -> None:
     cfg = load_config()
     dataset = build_dataset(month)
     if DEFAULT_DB.exists():  # cached data layer: FRED replaces the manual Treasury and CPI inputs, snapshots attach as rec["cache"]
-        store = Store()
+        store = Store(as_of=as_of)
         cfg = apply_macro(cfg, read_macro(store))
         print(f"cache: {attach(dataset, store)} tickers, macro as of {cfg['macro']['as_of']}, Treasury {cfg['macro']['treasury_10y']:.2%}, CPI {cfg['macro']['inflation']:.2%}")
     rows = screen(dataset, cfg)

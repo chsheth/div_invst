@@ -38,6 +38,7 @@ EDGAR_USER_AGENT=div-invst you@example.com
 ## Monthly routine
 The notebook `notebooks/monthly_run.ipynb` walks through every step below for any month and shows each step's output: `uv run --with jupyter jupyter lab notebooks/monthly_run.ipynb`.
 Drop the month's files in `docs/reference/<YYYY-MM>/` (gitignored), refresh the cache, run the screen. Step by step: `docs/guides/monthly_drop.md`.
+To see how a stored list performed afterwards, `notebooks/forward_test.ipynb` walks through the forward test of one month (`uv run --with jupyter --with yfinance jupyter lab notebooks/forward_test.ipynb`); `scripts/track_returns.py` does every month at once.
 
 ## Scripts
 ```
@@ -48,5 +49,7 @@ uv run --python 3.13 scripts/build_dataset.py                   # combined per-t
 uv run --python 3.13 scripts/refresh_data.py                    # fill/refresh the SQLite cache (yfinance, Finnhub, EDGAR, FRED) -> data/cache/
 uv run --python 3.13 scripts/run_screen.py                      # criteria over the dataset -> data/reports/<YYYY-MM>/top50.md
 uv run --python 3.13 scripts/run_screen.py --top 0              # every ranked stock plus the low-coverage ones -> ranked.md / ranked.csv (--top N for the top N)
+uv run --python 3.13 scripts/run_screen.py --month 2026-10 --top 0 --as-of 2026-10-27   # a past month on the cache as it was then
+uv run --python 3.13 scripts/track_returns.py                   # score every stored list against later total returns vs SPY -> data/reports/tracking.md
 uv run python -m unittest discover -s tests                    # unit tests
 ```

@@ -61,3 +61,23 @@ def revisions(symbol: str) -> dict:
     except Exception as e:  # noqa: BLE001
         parts["price_targets"] = {"error": repr(e)[:200]}
     return parts
+
+
+def prices(symbols: list[str], start: str) -> dict[str, list]:
+    """Adjusted daily closes (dividends and splits included) from `start` on, in one batched download:
+    {symbol: [[iso_date, close], ...]}. A symbol Yahoo has no prices for maps to []."""
+    import yfinance as yf
+
+    vend = {s: vendor(s) for s in symbols}
+    df = yf.download(sorted(set(vend.values())), start=start, auto_adjust=True, progress=False, group_by="ticker", threads=True)
+    out = {}
+    for sym, v in vend.items():
+        try:
+            col = df[v]["Close"].dropna()
+        except KeyError:
+            try:
+                col = df["Close"].dropna() if len(vend) == 1 else None  # older yfinance: flat columns for one ticker
+            except KeyError:
+                col = None
+        out[sym] = [[d.date().isoformat(), float(p)] for d, p in col.items()] if col is not None else []
+    return out

@@ -4,6 +4,9 @@ Every fetch is appended to `raw` with its timestamp and never overwritten, so ea
 revisions and analyst data are point-in-time and cannot be re-fetched later). Readers take the newest row for a
 (source, kind, ticker), optionally only when it is younger than `max_age_days`. Market-wide series (FRED) use an empty
 ticker. Payloads are JSON.
+
+`Store(as_of=...)` is a point-in-time view: reads ignore rows fetched after that moment, so a past month can be re-screened
+on the data the cache held then. Writes are not affected.
 """
 import json
 import sqlite3
@@ -30,7 +33,8 @@ def utcnow() -> datetime:
 
 
 class Store:
-    def __init__(self, path: Path | str = DEFAULT_DB):
+    def __init__(self, path: Path | str = DEFAULT_DB, as_of: datetime | None = None):
+        self.as_of = as_of.replace(tzinfo=timezone.utc) if as_of is not None and as_of.tzinfo is None else as_of
         if str(path) != ":memory:":
             Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(str(path))
@@ -44,8 +48,9 @@ class Store:
     def latest(self, source: str, kind: str, ticker: str = "", max_age_days: float | None = None,
                now: datetime | None = None):
         """(fetched_at, payload) of the newest matching row, or None when absent or older than max_age_days."""
-        row = self.db.execute("SELECT fetched_at, payload FROM raw WHERE source = ? AND kind = ? AND ticker = ? "
-                              "ORDER BY fetched_at DESC, id DESC LIMIT 1", (source, kind, ticker)).fetchone()
+        cutoff = self.as_of.isoformat() if self.as_of else "9999"  # ISO strings in one timezone sort as time
+        row = self.db.execute("SELECT fetched_at, payload FROM raw WHERE source = ? AND kind = ? AND ticker = ? AND fetched_at <= ? "
+                              "ORDER BY fetched_at DESC, id DESC LIMIT 1", (source, kind, ticker, cutoff)).fetchone()
         if row is None:
             return None
         fetched = datetime.fromisoformat(row[0])
@@ -55,13 +60,15 @@ class Store:
 
     def history(self, source: str, kind: str, ticker: str = "") -> list[tuple[datetime, object]]:
         """All snapshots, oldest first."""
-        rows = self.db.execute("SELECT fetched_at, payload FROM raw WHERE source = ? AND kind = ? AND ticker = ? "
-                               "ORDER BY fetched_at, id", (source, kind, ticker)).fetchall()
+        cutoff = self.as_of.isoformat() if self.as_of else "9999"
+        rows = self.db.execute("SELECT fetched_at, payload FROM raw WHERE source = ? AND kind = ? AND ticker = ? AND fetched_at <= ? "
+                               "ORDER BY fetched_at, id", (source, kind, ticker, cutoff)).fetchall()
         return [(datetime.fromisoformat(f), json.loads(p)) for f, p in rows]
 
     def tickers(self, kind: str) -> set[str]:
         """Tickers that have at least one snapshot of `kind`."""
-        return {r[0] for r in self.db.execute("SELECT DISTINCT ticker FROM raw WHERE kind = ?", (kind,))}
+        cutoff = self.as_of.isoformat() if self.as_of else "9999"
+        return {r[0] for r in self.db.execute("SELECT DISTINCT ticker FROM raw WHERE kind = ? AND fetched_at <= ?", (kind, cutoff))}
 
     def close(self) -> None:
         self.db.close()
