@@ -28,7 +28,7 @@ from div_invst.tracking import HORIZONS, dividend_cut, group_stats, horizon_end,
 
 REPORTS = ROOT / "data" / "reports"
 SNAPSHOTS = REPORTS / "snapshots.json"
-DEFAULT_SNAPSHOTS = {"2026-10": "2026-10-26", "2026-11": "2026-11-06"}   # the dates the first two lists were made
+DEFAULT_SNAPSHOTS = {"2026-10": "2026-10-26", "2026-11": "2026-11-07"}   # the dates the first two lists were made
 BENCH = "SPY"
 
 

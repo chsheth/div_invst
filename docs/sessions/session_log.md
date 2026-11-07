@@ -6,7 +6,7 @@ decisions are in `../criteria/decisions_log.md`.
 ## Session 10 (2026-11-07)
 - **Fix:** `refresh_data.py --scope top50` now attaches the cache and macro before ranking, so it picks the same top 50 as `run_screen.py` (checked on 2026-11); documented that it needs a filled cache. A code review of that fix raised the cold-cache limit (documented) and the duplicated ranking setup (noted in `session_resume.md`).
 - **Backtest question:** decided on a forward tracker rather than a backtest module (`../criteria/decisions_log.md`, 2026-11-07). Built `Store(as_of=...)` and `run_screen --as-of` to rebuild the October full list on the cache as of 2026-10-27 (top 50 identical to the original), `tracking.py`, `yahoo.prices`, `scripts/track_returns.py`, `notebooks/forward_test.ipynb` and a tracker step in `monthly_run.ipynb`; 54 tests.
-- **Started:** the November `refresh_data` (background). **Not done:** the first full `run_screen --top 0` and tracker run on November.
+- **Done after:** the November `refresh_data` finished (0 errors) and `run_screen --top 0` and the tracker ran on it. The November list date is 2026-11-07 (the screen was re-run on the refreshed cache that day). Scheduling was considered and dropped: the user runs the monthly flow by hand in the first week of each month.
 
 ## Session 9 (2026-11-06)
 - **Cleanup:** removed the three spike scripts (`coverage_spike.py`, `revision_spike.py`, `finnhub_vs_edgar.py`, ~970 lines; findings stay in `docs/research/`, scripts in git history) and the two spike output folders under `data/`; fixed stale lines in `session_resume.md`.
